@@ -69,22 +69,125 @@ volSlider.addEventListener("input", function () {
   });
 });
 
-// --- Open the Tools page ----------------------------------------------------
+// --- Generic copy buttons ---------------------------------------------------
 
-document.getElementById("openTools").addEventListener("click", function () {
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    const url = tabs[0] && tabs[0].url;
-    const open = function () {
-      chrome.tabs.create({ url: chrome.runtime.getURL("tools.html") });
-      window.close();
-    };
-    // Stash the page URL so the QR tool can prefill it.
-    if (url && /^https?:/.test(url)) {
-      chrome.storage.local.set({ mwToolsUrl: url }, open);
-    } else {
-      open();
-    }
+document.querySelectorAll("[data-copy]").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    const el = document.getElementById(btn.dataset.copy);
+    const text = (el.value !== undefined ? el.value : el.textContent) || "";
+    navigator.clipboard.writeText(text).then(function () {
+      const old = btn.textContent;
+      btn.textContent = "✓";
+      setTimeout(function () {
+        btn.textContent = old;
+      }, 900);
+    });
   });
+});
+
+// --- QR code ----------------------------------------------------------------
+
+const qrInput = document.getElementById("qrInput");
+const qrOut = document.getElementById("qrOut");
+const qrDownload = document.getElementById("qrDownload");
+let qrCanvas = null;
+
+function drawQR(text) {
+  let q;
+  try {
+    q = MWQR.generate(text);
+  } catch (e) {
+    qrOut.textContent = e.message;
+    qrDownload.hidden = true;
+    return;
+  }
+  const quiet = 4;
+  const maxPx = 260;
+  const cell = Math.max(2, Math.floor(maxPx / (q.size + quiet * 2)));
+  const dim = (q.size + quiet * 2) * cell;
+  const canvas = document.createElement("canvas");
+  canvas.width = dim;
+  canvas.height = dim;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, dim, dim);
+  ctx.fillStyle = "#000";
+  for (let r = 0; r < q.size; r++) {
+    for (let c = 0; c < q.size; c++) {
+      if (q.modules[r][c]) {
+        ctx.fillRect((c + quiet) * cell, (r + quiet) * cell, cell, cell);
+      }
+    }
+  }
+  qrOut.innerHTML = "";
+  qrOut.appendChild(canvas);
+  qrCanvas = canvas;
+  qrDownload.hidden = false;
+}
+
+document.getElementById("qrGen").addEventListener("click", function () {
+  const text = qrInput.value.trim();
+  if (text) {
+    drawQR(text);
+  }
+});
+qrInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    document.getElementById("qrGen").click();
+  }
+});
+qrDownload.addEventListener("click", function () {
+  if (!qrCanvas) {
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = qrCanvas.toDataURL("image/png");
+  a.download = "qr.png";
+  a.click();
+});
+
+// Prefill with the active tab's URL and render it.
+chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+  const url = tabs[0] && tabs[0].url;
+  if (url && /^https?:/.test(url)) {
+    qrInput.value = url;
+    drawQR(url);
+  }
+});
+
+// --- Color picker -----------------------------------------------------------
+
+const swatch = document.getElementById("swatch");
+const hexVal = document.getElementById("hexVal");
+const rgbVal = document.getElementById("rgbVal");
+const colorInput = document.getElementById("colorInput");
+
+function setColor(hex) {
+  hex = hex.toUpperCase();
+  swatch.style.background = hex;
+  hexVal.textContent = hex;
+  const n = parseInt(hex.slice(1), 16);
+  rgbVal.textContent =
+    "rgb(" + ((n >> 16) & 255) + ", " + ((n >> 8) & 255) + ", " + (n & 255) + ")";
+  colorInput.value = hex;
+}
+setColor("#7A4FF6");
+
+colorInput.addEventListener("input", function () {
+  setColor(colorInput.value);
+});
+
+document.getElementById("eyedrop").addEventListener("click", function () {
+  if (!window.EyeDropper) {
+    alert("Your browser doesn't support the eyedropper.");
+    return;
+  }
+  new EyeDropper()
+    .open()
+    .then(function (res) {
+      setColor(res.sRGBHex);
+    })
+    .catch(function () {});
 });
 
 // --- Open media panel / macro builder in the active tab ---------------------
