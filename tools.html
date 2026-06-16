@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Magic Wand · Tools</title>
+    <link rel="stylesheet" href="tools.css" />
+  </head>
+  <body>
+    <header class="t-header">
+      <img src="icons/icon48.png" alt="" class="t-logo" />
+      <h1>Magic Wand Tools</h1>
+    </header>
+
+    <main class="t-grid">
+      <!-- QR code -->
+      <section class="card">
+        <h2>🔳 QR code</h2>
+        <p class="hint">Make a QR for any link or text — scan it with your phone.</p>
+        <input id="qrInput" class="field" type="text" placeholder="https://example.com" />
+        <button id="qrGen" class="btn">Generate</button>
+        <div id="qrOut" class="qr-out"></div>
+        <button id="qrDownload" class="btn ghost" hidden>Download PNG</button>
+      </section>
+
+      <!-- Color picker -->
+      <section class="card">
+        <h2>🎨 Color picker</h2>
+        <p class="hint">Pick any pixel on screen, or choose a color.</p>
+        <div class="row">
+          <button id="eyedrop" class="btn">Eyedropper</button>
+          <input id="colorInput" class="color-input" type="color" value="#7a4ff6" />
+        </div>
+        <div class="row">
+          <div id="swatch" class="swatch"></div>
+          <div class="color-vals">
+            <code id="hexVal">#7A4FF6</code>
+            <code id="rgbVal">rgb(122, 79, 246)</code>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn ghost" data-copy="hexVal">Copy HEX</button>
+          <button class="btn ghost" data-copy="rgbVal">Copy RGB</button>
+        </div>
+      </section>
+
+      <!-- Password generator -->
+      <section class="card">
+        <h2>🔑 Password generator</h2>
+        <div class="row">
+          <label class="len-label">Length <span id="lenVal">16</span></label>
+          <input id="pwLen" type="range" min="6" max="64" value="16" class="range" />
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="pwLower" checked /> a-z</label>
+          <label><input type="checkbox" id="pwUpper" checked /> A-Z</label>
+          <label><input type="checkbox" id="pwDigit" checked /> 0-9</label>
+          <label><input type="checkbox" id="pwSym" checked /> !@#</label>
+        </div>
+        <output id="pwOut" class="pw-out"></output>
+        <div class="row">
+          <button id="pwGen" class="btn">Generate</button>
+          <button class="btn ghost" data-copy="pwOut">Copy</button>
+        </div>
+      </section>
+
+      <!-- Scratchpad -->
+      <section class="card">
+        <h2>📝 Scratchpad</h2>
+        <p class="hint">Auto-saved notes <span id="padSaved" class="saved"></span></p>
+        <textarea id="pad" class="pad" placeholder="Jot anything here…"></textarea>
+        <button id="padClear" class="btn ghost">Clear</button>
+      </section>
+
+      <!-- Converter -->
+      <section class="card">
+        <h2>📐 Converter</h2>
+        <select id="convCat" class="field">
+          <option value="length">Length</option>
+          <option value="mass">Weight</option>
+          <option value="temp">Temperature</option>
+          <option value="data">Data size</option>
+          <option value="speed">Speed</option>
+        </select>
+        <div class="row">
+          <input id="convVal" class="field" type="number" value="1" />
+          <select id="convFrom" class="field"></select>
+        </div>
+        <div class="conv-eq">=</div>
+        <div class="row">
+          <output id="convResult" class="field result">—</output>
+          <select id="convTo" class="field"></select>
+        </div>
+      </section>
+
+      <!-- World clock -->
+      <section class="card">
+        <h2>🌍 World clock</h2>
+        <ul id="clock" class="clock"></ul>
+      </section>
+    </main>
+
+    <script src="qr.js"></script>
+    <script src="tools.js"></script>
+  </body>
+</html>

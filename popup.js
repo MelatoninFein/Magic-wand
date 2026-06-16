@@ -27,6 +27,24 @@ chrome.storage.sync.get(DEFAULTS, function (settings) {
   });
 });
 
+// --- Open the Tools page ----------------------------------------------------
+
+document.getElementById("openTools").addEventListener("click", function () {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    const url = tabs[0] && tabs[0].url;
+    const open = function () {
+      chrome.tabs.create({ url: chrome.runtime.getURL("tools.html") });
+      window.close();
+    };
+    // Stash the page URL so the QR tool can prefill it.
+    if (url && /^https?:/.test(url)) {
+      chrome.storage.local.set({ mwToolsUrl: url }, open);
+    } else {
+      open();
+    }
+  });
+});
+
 // --- Open media panel in the active tab -------------------------------------
 
 document.getElementById("openPanel").addEventListener("click", function () {

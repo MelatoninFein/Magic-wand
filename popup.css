@@ -148,6 +148,10 @@ body {
   background: #6a3ff0;
 }
 
+.tool-btn + .tool-btn {
+  margin-top: 8px;
+}
+
 .tool-btn.small {
   width: auto;
   padding: 8px 14px;

@@ -11,6 +11,7 @@ A lightweight Chrome extension (Manifest V3) adding quality-of-life features and
 5. **Clean URLs** — strips tracking parameters (`utm_*`, `fbclid`, `gclid`, …) from the page URL and links.
 6. **Countdown timer** — set a timer from the popup and get a desktop notification when it finishes.
 7. **Dismiss cookie popups** — auto-rejects/closes consent banners and restores scrolling when a modal locks the page.
+8. **Tools page** — a built-in toolbox: QR code for any link, color picker (eyedropper), password generator, scratchpad notes, unit/temperature converter, and a world clock.
 
 ## Settings
 
@@ -64,6 +65,17 @@ The popup has a simple countdown timer. Enter minutes and press **Start**; `back
 
 `annoyances.js` auto-dismisses cookie-consent / GDPR banners from the major consent platforms (OneTrust, Cookiebot, Quantcast, Didomi, Usercentrics, Sourcepoint, TrustArc, Osano, CookieYes, Complianz, Borlabs, Iubenda, Funding Choices, …). It **only ever clicks the reject button** (never accept) — if no reject button exists, it simply hides the banner via CSS instead. It also **restores scrolling** if the page was locked behind a modal. A short-lived `MutationObserver` catches banners that load late. Toggle in the popup.
 
+### Tools page
+
+The popup's **🧰 Open tools** button opens `tools.html`, a built-in toolbox that runs entirely offline (nothing is sent to any server):
+
+- **QR code** — generate a QR for any link/text (the active tab's URL is pre-filled). Uses a first-party QR encoder (`qr.js`), with PNG download.
+- **Color picker** — pick any pixel on screen with the eyedropper, or choose a color; copy HEX/RGB.
+- **Password generator** — adjustable length and character sets, using `crypto.getRandomValues`.
+- **Scratchpad** — auto-saved notes.
+- **Converter** — length, weight, temperature, data size, and speed.
+- **World clock** — current time across several time zones.
+
 ## Installation (load unpacked)
 
 1. Download or clone this repository.
@@ -84,6 +96,8 @@ The popup has a simple countdown timer. Enter minutes and press **Start**; `back
 | `background.js` | Betting-site ruleset toggle + countdown timer (alarms/notifications) |
 | `rules/betting-domains.json` | Betting/gambling domain blocklist (~253,000 domains) |
 | `popup.html` / `popup.css` / `popup.js` | Settings popup with on/off switches |
+| `tools.html` / `tools.css` / `tools.js` | Built-in tools page (QR, color, password, …) |
+| `qr.js` | First-party QR code encoder (no dependencies) |
 | `icons/` | Wand logo + toolbar icons |
 
 ## Notes
