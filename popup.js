@@ -4,7 +4,7 @@ const DEFAULTS = {
   playFix: true,
   blockShorts: true,
   blockBetting: true,
-  volumeControl: true,
+  mediaControls: true,
 };
 const FIELDS = Object.keys(DEFAULTS);
 

@@ -45,29 +45,3 @@ html.mw-block-shorts tp-yt-paper-tab:has(a[href$="/shorts"]),
 html.mw-block-shorts yt-chip-cloud-chip-renderer:has([title="Shorts"]) {
   display: none !important;
 }
-
-/* --- Volume control on-screen indicator --- */
-.mw-vol-indicator {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 60;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.75);
-  color: #fff;
-  font-family: "YouTube Noto", Roboto, Arial, sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.mw-vol-indicator.mw-vol-show {
-  opacity: 1;
-}
-
-.mw-vol-indicator.mw-vol-boost {
-  color: #ffd140;
-}

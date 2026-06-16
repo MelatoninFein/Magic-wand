@@ -7,7 +7,7 @@ A lightweight Chrome extension (Manifest V3) adding quality-of-life features and
 1. **Refresh on play** — refreshes the YouTube page once when a video starts playing, resolving playback glitches that sometimes occur on the first load of a video.
 2. **Block Shorts** — hides every Shorts shelf, sidebar link, thumbnail, and tab, and redirects any `/shorts/<id>` URL to the normal `/watch?v=<id>` player.
 3. **Block betting sites** — blocks gambling / betting sites (a ~253,000-domain blocklist).
-4. **Better volume control** — scroll over the YouTube player to change volume, with boost above 100% for quiet videos.
+4. **Media controls (any site)** — scroll over any HTML5 video to change volume (with boost above 100%), and use keyboard shortcuts to change playback speed. Works on YouTube, Twitch, Netflix, embeds, etc.
 
 ## Settings
 
@@ -38,9 +38,14 @@ The blocklist (`rules/betting-domains.json`) bundles **~253,000 domains** merged
 
 There is no keyword matching, so there are **no false positives** on legitimate sites — a site is blocked only if its domain is on the list. `block` rules need no host permissions, so the extension doesn't request access to all your data. To add more sites, append domains to `rules/betting-domains.json`; `background.js` enables/disables the ruleset based on the toggle.
 
-### Better volume control
+### Media controls (any site)
 
-Scroll the mouse wheel over the YouTube player to raise/lower the volume in 5% steps, with a brief on-screen indicator. Beyond 100% the audio is amplified up to 400% using a Web Audio gain node (great for quiet videos), so you can go louder than YouTube normally allows. The chosen level is remembered across videos and sessions.
+`media.js` runs on every site (and inside frames/embeds) and adds, for any HTML5 `<video>`:
+
+- **Scroll-to-volume** — scroll the mouse wheel over a video to raise/lower volume in 5% steps, with a brief on-screen indicator. Beyond 100% the audio is amplified up to 400% via a Web Audio gain node (great for quiet videos). To avoid muting cross-origin media, boost above 100% only engages for same-origin or streamed (blob/MSE) sources. The level is remembered across videos and sessions.
+- **Speed control** — `S` slows down, `D` speeds up (0.25× steps), and `R` resets to 1×. Keys are ignored while typing in a text field.
+
+Because it touches every site, this feature requires the extension to run on all URLs (Chrome will show an "all sites" access prompt). It does nothing until you scroll over a video or press a speed key, and can be turned off in the popup.
 
 ## Installation (load unpacked)
 
@@ -55,8 +60,9 @@ Scroll the mouse wheel over the YouTube player to raise/lower the volume in 5% s
 | File | Purpose |
 | --- | --- |
 | `manifest.json` | Extension manifest (Manifest V3) |
-| `content.js` | Applies the YouTube features (refresh, Shorts, volume) based on saved settings |
-| `styles.css` | Hides Shorts UI + styles the volume indicator |
+| `content.js` | YouTube features (refresh + Shorts) based on saved settings |
+| `media.js` | Site-wide media controls (scroll volume + speed) on any video |
+| `styles.css` | Hides all Shorts UI elements (toggled by a class) |
 | `background.js` | Enables/disables the betting-site ruleset |
 | `rules/betting-domains.json` | Betting/gambling domain blocklist (~253,000 domains) |
 | `popup.html` / `popup.css` / `popup.js` | Settings popup with on/off switches |
