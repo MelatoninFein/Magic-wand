@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Magic Wand",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "A lightweight extension adding quality of life features and minor bug fixes for youtube and other websites.",
   "icons": {
     "16": "icons/icon16.png",
@@ -18,11 +18,6 @@
         "id": "betting-domains",
         "enabled": true,
         "path": "rules/betting-domains.json"
-      },
-      {
-        "id": "betting-keywords",
-        "enabled": true,
-        "path": "rules/betting-keywords.json"
       }
     ]
   },

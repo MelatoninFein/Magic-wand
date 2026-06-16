@@ -31,12 +31,11 @@ Each distinct video triggers exactly one refresh per tab session.
 
 ### Block betting sites
 
-Uses Chrome's `declarativeNetRequest` to **block** gambling / betting sites at the network level (the request is cancelled, so there's no loading and no custom page to hang). Two rulesets work together for maximum coverage:
+Uses Chrome's `declarativeNetRequest` to **block** gambling / betting sites at the network level (the request is cancelled, so there's no loading and no custom page to hang).
 
-- **Domain list** (`rules/betting-domains.json`) — **~253,000 domains** merged from [HaGeZi's gambling blocklist](https://github.com/hagezi/dns-blocklists) (the most comprehensive available), [StevenBlack](https://github.com/StevenBlack/hosts), [The Block List Project](https://github.com/blocklistproject/Lists), curated mainstream/crypto/skin operators, Swedish (Spelinspektionen) operators, and prediction markets (Kalshi, Polymarket, PredictIt, etc.). Matched including subdomains.
-- **Keyword rule** (`rules/betting-keywords.json`) — blocks any domain whose host contains a gambling term (`casino`, `gambl`, `roulette`, `blackjack`, `baccarat`, `sportsbook`, `bookmaker`, `betting`, `wager`, `jackpot`, `bingo`, `lottery`, `lotto`, `slots`, `poker`, …). This catches the long tail of new/unlisted sites. The term `bet` on its own is deliberately excluded to avoid false positives (e.g. `betterhelp.com`, `diabetes.org`).
+The blocklist (`rules/betting-domains.json`) bundles **~253,000 domains** merged from [HaGeZi's gambling blocklist](https://github.com/hagezi/dns-blocklists) (the most comprehensive available), [StevenBlack](https://github.com/StevenBlack/hosts), [The Block List Project](https://github.com/blocklistproject/Lists), curated mainstream/crypto/skin operators, Swedish (Spelinspektionen) operators, and prediction markets (Kalshi, Polymarket, PredictIt, etc.). Domains are matched including subdomains.
 
-`block` rules need no host permissions, so the extension doesn't request access to all your data. The two rulesets are independent, so a problem in one can't disable the other. `background.js` enables/disables both based on the toggle.
+There is no keyword matching, so there are **no false positives** on legitimate sites — a site is blocked only if its domain is on the list. `block` rules need no host permissions, so the extension doesn't request access to all your data. To add more sites, append domains to `rules/betting-domains.json`; `background.js` enables/disables the ruleset based on the toggle.
 
 ## Installation (load unpacked)
 
@@ -55,7 +54,6 @@ Uses Chrome's `declarativeNetRequest` to **block** gambling / betting sites at t
 | `styles.css` | Hides all Shorts UI elements (toggled by a class) |
 | `background.js` | Enables/disables the betting-site ruleset |
 | `rules/betting-domains.json` | Betting/gambling domain blocklist (~253,000 domains) |
-| `rules/betting-keywords.json` | Keyword-based gambling block rule |
 | `popup.html` / `popup.css` / `popup.js` | Settings popup with on/off switches |
 | `icons/` | Wand logo + toolbar icons |
 

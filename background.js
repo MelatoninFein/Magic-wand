@@ -4,7 +4,7 @@
 // setting. declarativeNetRequest rulesets can only be toggled from an
 // extension context, so we enable/disable the static rulesets here.
 
-const RULESET_IDS = ["betting-domains", "betting-keywords"];
+const RULESET_IDS = ["betting-domains"];
 const DEFAULTS = { blockBetting: true };
 
 function applyBettingRuleset(enabled) {
