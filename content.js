@@ -1,21 +1,37 @@
-// YouTube Play Fix
+// Magic Wand
 //
-// Two features:
-//   1. Refresh the page once when a video starts playing (fixes playback
-//      glitches on first load).
-//   2. Fully block YouTube Shorts: hide every Shorts element (via styles.css)
-//      and redirect any /shorts/<id> URL to the normal /watch?v=<id> player.
+// Two toggleable features (controlled from the popup, stored in chrome.storage):
+//   1. playFix      - refresh the page once when a video starts playing.
+//   2. blockShorts  - hide all Shorts UI (styles.css) and redirect
+//                     /shorts/<id> URLs to the normal /watch?v=<id> player.
 
 (function () {
   "use strict";
 
+  const DEFAULTS = { playFix: true, blockShorts: true };
+  let settings = Object.assign({}, DEFAULTS);
+
+  const root = document.documentElement;
+
+  // Optimistically hide Shorts right away (before settings load) so they never
+  // flash on screen. If the user has the feature off, the class is removed as
+  // soon as the stored settings arrive.
+  root.classList.add("mw-block-shorts");
+
   // ---------------------------------------------------------------------------
-  // Feature 2 (part A): redirect Shorts URLs to the regular watch page.
+  // Shorts blocking
   // ---------------------------------------------------------------------------
 
-  // If the current URL is a Shorts page, rewrite it to the standard watch URL.
-  // Returns true if a redirect was performed.
+  function applyShortsClass() {
+    root.classList.toggle("mw-block-shorts", !!settings.blockShorts);
+  }
+
+  // If on a Shorts page, rewrite to the standard watch URL. Returns true if a
+  // redirect was performed.
   function redirectShorts() {
+    if (!settings.blockShorts) {
+      return false;
+    }
     const match = window.location.pathname.match(/^\/shorts\/([\w-]+)/);
     if (!match) {
       return false;
@@ -26,98 +42,115 @@
     return true;
   }
 
-  // Run as early as possible so the Shorts player never gets a chance to load.
-  if (redirectShorts()) {
-    return;
-  }
-
-  // YouTube is a single-page app, so also catch in-page navigations to Shorts.
-  window.addEventListener("yt-navigate-start", redirectShorts, true);
-  window.addEventListener("yt-navigate-finish", redirectShorts, true);
-  document.addEventListener("yt-navigate-start", redirectShorts, true);
-  document.addEventListener("yt-navigate-finish", redirectShorts, true);
-
-  // ---------------------------------------------------------------------------
-  // Feature 1: refresh once when a video starts playing.
-  // ---------------------------------------------------------------------------
-
-  // Returns a stable identifier for the currently loaded video, or null when
-  // we are not on a watch page.
-  function getVideoId() {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("v");
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function storageKey(videoId) {
-    return "ytPlayFix:refreshed:" + videoId;
-  }
-
-  // Called whenever a video element starts playing.
-  function onPlay() {
-    const videoId = getVideoId();
-    if (!videoId) {
-      return;
-    }
-
-    const key = storageKey(videoId);
-    if (sessionStorage.getItem(key)) {
-      // Already refreshed for this video during this tab session.
-      return;
-    }
-
-    // Mark before reloading so the post-refresh autoplay does not loop.
-    sessionStorage.setItem(key, "1");
-    window.location.reload();
-  }
-
-  // Attach the listener to a video element (idempotent per element).
-  function attach(video) {
-    if (video.dataset.ytPlayFixBound) {
-      return;
-    }
-    video.dataset.ytPlayFixBound = "1";
-    video.addEventListener("play", onPlay);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Feature 2 (part B): remove Shorts shelves/links the CSS can't fully reach.
-  // ---------------------------------------------------------------------------
-
-  // CSS handles hiding, but we also remove obvious Shorts shelves so they don't
-  // occupy layout space, regardless of the browser's :has() support.
   const SHORTS_SHELF_SELECTORS = [
     "ytd-rich-shelf-renderer[is-shorts]",
     "ytd-reel-shelf-renderer",
     "ytm-reel-shelf-renderer",
   ];
 
+  // Remove Shorts shelves outright so they don't leave an empty layout gap.
   function removeShortsShelves() {
+    if (!settings.blockShorts) {
+      return;
+    }
     SHORTS_SHELF_SELECTORS.forEach(function (sel) {
       document.querySelectorAll(sel).forEach(function (el) {
-        // Drop the surrounding rich-section wrapper when present so no empty
-        // gap is left behind.
         const wrapper = el.closest("ytd-rich-section-renderer");
         (wrapper || el).remove();
       });
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Play fix
+  // ---------------------------------------------------------------------------
+
+  function getVideoId() {
+    try {
+      return new URLSearchParams(window.location.search).get("v");
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function storageKey(videoId) {
+    return "magicWand:refreshed:" + videoId;
+  }
+
+  function onPlay() {
+    if (!settings.playFix) {
+      return;
+    }
+    const videoId = getVideoId();
+    if (!videoId) {
+      return;
+    }
+    const key = storageKey(videoId);
+    if (sessionStorage.getItem(key)) {
+      return; // Already refreshed for this video this tab session.
+    }
+    // Mark before reloading so the post-refresh autoplay does not loop.
+    sessionStorage.setItem(key, "1");
+    window.location.reload();
+  }
+
+  function attach(video) {
+    if (video.dataset.magicWandBound) {
+      return;
+    }
+    video.dataset.magicWandBound = "1";
+    video.addEventListener("play", onPlay);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Wiring
+  // ---------------------------------------------------------------------------
+
   function scan() {
     document.querySelectorAll("video").forEach(attach);
     removeShortsShelves();
   }
 
-  // Elements are created/replaced dynamically by YouTube's SPA, so watch the
-  // DOM and re-apply as content appears.
-  const observer = new MutationObserver(scan);
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  });
+  function init() {
+    redirectShorts();
 
-  scan();
+    // Catch in-page (SPA) navigations to Shorts.
+    ["yt-navigate-start", "yt-navigate-finish"].forEach(function (evt) {
+      window.addEventListener(evt, redirectShorts, true);
+      document.addEventListener(evt, redirectShorts, true);
+    });
+
+    // Elements are created/replaced dynamically, so watch the DOM and re-apply.
+    new MutationObserver(scan).observe(root, {
+      childList: true,
+      subtree: true,
+    });
+
+    scan();
+  }
+
+  // Load settings, then start. Live-update when the popup changes them.
+  if (chrome.storage && chrome.storage.sync) {
+    chrome.storage.sync.get(DEFAULTS, function (stored) {
+      settings = Object.assign({}, DEFAULTS, stored);
+      applyShortsClass();
+      init();
+    });
+
+    chrome.storage.onChanged.addListener(function (changes, area) {
+      if (area !== "sync") {
+        return;
+      }
+      Object.keys(changes).forEach(function (k) {
+        settings[k] = changes[k].newValue;
+      });
+      applyShortsClass();
+      // Apply Shorts removal immediately if it was just turned on.
+      removeShortsShelves();
+    });
+  } else {
+    // Storage unavailable: fall back to defaults.
+    applyShortsClass();
+    init();
+  }
 })();
