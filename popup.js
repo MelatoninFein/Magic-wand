@@ -7,6 +7,7 @@ const DEFAULTS = {
   mediaControls: true,
   cleanUrls: true,
   dismissPopups: true,
+  macros: true,
 };
 const FIELDS = Object.keys(DEFAULTS);
 
@@ -45,17 +46,25 @@ document.getElementById("openTools").addEventListener("click", function () {
   });
 });
 
-// --- Open media panel in the active tab -------------------------------------
+// --- Open media panel / macro builder in the active tab ---------------------
 
-document.getElementById("openPanel").addEventListener("click", function () {
+function messageActiveTab(type) {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     if (tabs[0]) {
-      chrome.tabs.sendMessage(tabs[0].id, { type: "toggle-panel" }, function () {
+      chrome.tabs.sendMessage(tabs[0].id, { type: type }, function () {
         void chrome.runtime.lastError; // ignore tabs without a content script
       });
     }
     window.close();
   });
+}
+
+document.getElementById("openPanel").addEventListener("click", function () {
+  messageActiveTab("toggle-panel");
+});
+
+document.getElementById("openMacro").addEventListener("click", function () {
+  messageActiveTab("toggle-macro");
 });
 
 // --- Countdown timer --------------------------------------------------------

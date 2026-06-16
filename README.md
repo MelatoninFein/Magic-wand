@@ -12,6 +12,7 @@ A lightweight Chrome extension (Manifest V3) adding quality-of-life features and
 6. **Countdown timer** — set a timer from the popup and get a desktop notification when it finishes.
 7. **Dismiss cookie popups** — auto-rejects/closes consent banners and restores scrolling when a modal locks the page.
 8. **Tools page** — a built-in toolbox: QR code for any link, color picker (eyedropper), password generator, scratchpad notes, unit/temperature converter, and a world clock.
+9. **Macros** — build a small automation (read a field → fill/click → repeat on a loop), saved per-site.
 
 ## Settings
 
@@ -76,6 +77,17 @@ The popup's **🧰 Open tools** button opens `tools.html`, a built-in toolbox th
 - **Converter** — length, weight, temperature, data size, and speed.
 - **World clock** — current time across several time zones.
 
+### Macros
+
+`macro.js` adds a small automation builder, opened with **Alt+K** or the popup's "Open macro builder" button. Add steps by picking elements on the page:
+
+- **Read field** — grab a field's value (stored as the `{grabbed}` token)
+- **Fill field** — type text into a field; include `{grabbed}` to insert the last read value
+- **Click** — click an element
+- **Wait** — pause N ms
+
+Set a **repeat count** and **interval**, then **Run/Stop**. So "grab text from a field, type it somewhere, then repeat" is: *Read field → Fill field (`{grabbed}`) → Click → repeat ×N*. Macros are saved per-site and fields are filled in a framework-friendly way (native value setter + `input`/`change` events). Toggle in the popup.
+
 ## Installation (load unpacked)
 
 1. Download or clone this repository.
@@ -98,6 +110,7 @@ The popup's **🧰 Open tools** button opens `tools.html`, a built-in toolbox th
 | `popup.html` / `popup.css` / `popup.js` | Settings popup with on/off switches |
 | `tools.html` / `tools.css` / `tools.js` | Built-in tools page (QR, color, password, …) |
 | `qr.js` | First-party QR code encoder (no dependencies) |
+| `macro.js` | Per-site macro builder (read/fill/click/wait, repeat) |
 | `icons/` | Wand logo + toolbar icons |
 
 ## Notes
