@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "regexFilter": "^https?://[^/]*(casino|gambl|roulette|blackjack|baccarat|sportsbook|bookmaker|betting|wager|jackpot|bingo|lottery|lotto|slots|poker|kasino|kasyno|ruleta)",
+      "resourceTypes": [
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  }
+]
