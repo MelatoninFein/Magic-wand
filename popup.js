@@ -87,6 +87,14 @@ document.querySelectorAll("[data-copy]").forEach(function (btn) {
 
 // --- QR code ----------------------------------------------------------------
 
+const qrToggle = document.getElementById("qrToggle");
+const qrPanel = document.getElementById("qrPanel");
+qrToggle.addEventListener("click", function () {
+  const show = qrPanel.hidden;
+  qrPanel.hidden = !show;
+  qrToggle.setAttribute("aria-expanded", String(show));
+});
+
 const qrInput = document.getElementById("qrInput");
 const qrOut = document.getElementById("qrOut");
 const qrDownload = document.getElementById("qrDownload");
@@ -102,7 +110,7 @@ function drawQR(text) {
     return;
   }
   const quiet = 4;
-  const maxPx = 150;
+  const maxPx = 260;
   const cell = Math.max(2, Math.floor(maxPx / (q.size + quiet * 2)));
   const dim = (q.size + quiet * 2) * cell;
   const canvas = document.createElement("canvas");

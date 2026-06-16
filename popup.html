@@ -45,15 +45,19 @@
       <input id="volSlider" class="vol-slider" type="range" min="0" max="400" step="5" value="100" />
     </div>
 
-    <!-- QR code -->
-    <div class="mini">
-      <div class="mini-head">🔳 QR code</div>
-      <div class="row">
-        <input id="qrInput" class="field" type="text" placeholder="https://…" />
-        <button id="qrGen" type="button" class="btn-sm">Make</button>
+    <!-- QR code (collapsible) -->
+    <button id="qrToggle" type="button" class="gear-btn" aria-expanded="false">
+      <span class="caret">▸</span> 🔳 QR code
+    </button>
+    <div id="qrPanel" class="settings-panel" hidden>
+      <div class="collapse-body">
+        <div class="row">
+          <input id="qrInput" class="field" type="text" placeholder="https://…" />
+          <button id="qrGen" type="button" class="btn-sm">Make</button>
+        </div>
+        <div id="qrOut" class="qr-out"></div>
+        <button id="qrDownload" type="button" class="btn-sm ghost full" hidden>Download PNG</button>
       </div>
-      <div id="qrOut" class="qr-out"></div>
-      <button id="qrDownload" type="button" class="btn-sm ghost full" hidden>Download PNG</button>
     </div>
 
     <!-- Settings (gear) -->
