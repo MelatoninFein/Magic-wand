@@ -404,10 +404,12 @@
     if (!on) {
       return;
     }
-    if (!panel) {
+    const firstTime = !panel;
+    if (firstTime) {
       buildPanel();
     }
-    const willShow = show === undefined ? panel.style.display === "none" : show;
+    const willShow =
+      show === undefined ? firstTime || panel.style.display === "none" : show;
     panel.style.display = willShow ? "block" : "none";
   }
 

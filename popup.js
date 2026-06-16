@@ -28,6 +28,47 @@ chrome.storage.sync.get(DEFAULTS, function (settings) {
   });
 });
 
+// --- Gear: show/hide the settings panel -------------------------------------
+
+const gear = document.getElementById("gear");
+const settingsPanel = document.getElementById("settingsPanel");
+gear.addEventListener("click", function () {
+  const show = settingsPanel.hidden;
+  settingsPanel.hidden = !show;
+  gear.setAttribute("aria-expanded", String(show));
+});
+
+// --- Volume slider (controls the active tab's video) ------------------------
+
+const volSlider = document.getElementById("volSlider");
+const volVal = document.getElementById("volVal");
+
+function showVol(level) {
+  volVal.textContent = level + "%";
+}
+
+chrome.storage.local.get({ mwVolumeLevel: 100 }, function (d) {
+  volSlider.value = d.mwVolumeLevel;
+  showVol(d.mwVolumeLevel);
+});
+
+volSlider.addEventListener("input", function () {
+  const level = parseInt(volSlider.value, 10);
+  showVol(level);
+  chrome.storage.local.set({ mwVolumeLevel: level });
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    if (tabs[0]) {
+      chrome.tabs.sendMessage(
+        tabs[0].id,
+        { type: "set-volume", level: level },
+        function () {
+          void chrome.runtime.lastError;
+        }
+      );
+    }
+  });
+});
+
 // --- Open the Tools page ----------------------------------------------------
 
 document.getElementById("openTools").addEventListener("click", function () {

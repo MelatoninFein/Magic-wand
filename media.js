@@ -1,7 +1,7 @@
 // Magic Wand - site-wide media tools (runs on every site and frame).
 //
 // Gated by "mediaControls":
-//   - Scroll the wheel over any <video> to change volume (boost up to 400%).
+//   - Volume is controlled by the slider in the popup (boost up to 400%).
 //   - The popup's "Open media panel" button opens a draggable control panel
 //     with play/pause, speed, volume, loop, PiP and a sleep timer.
 // Gated by "cleanUrls":
@@ -20,9 +20,7 @@
   const SPEED_STEP = 0.25;
   const SPEED_MIN = 0.1;
   const SPEED_MAX = 16;
-  const VOL_KEY = "magicWand:volume";
-
-  let volLevel = clampVol(parseInt(localStorage.getItem(VOL_KEY), 10));
+  let volLevel = 100;
   let audioCtx = null;
   const gains = new WeakMap();
   let indicator = null;
@@ -60,21 +58,6 @@
       const rb = b.getBoundingClientRect();
       return rb.width * rb.height - ra.width * ra.height;
     })[0];
-  }
-
-  function videoFor(node) {
-    let el = node;
-    for (let i = 0; i < 6 && el; i++) {
-      if (el.tagName === "VIDEO") {
-        return el;
-      }
-      const v = el.querySelector && el.querySelector("video");
-      if (v) {
-        return v;
-      }
-      el = el.parentElement;
-    }
-    return activeVideo();
   }
 
   // --- Indicator ------------------------------------------------------------
@@ -135,7 +118,6 @@
 
   function applyVolume(video) {
     volLevel = clampVol(volLevel);
-    localStorage.setItem(VOL_KEY, String(volLevel));
     if (video.muted && volLevel > 0) {
       video.muted = false;
     }
@@ -154,31 +136,21 @@
     }
   }
 
-  function changeVolume(video, delta) {
-    if (audioCtx && audioCtx.state === "suspended") {
-      audioCtx.resume();
+  function setVolume(level) {
+    volLevel = clampVol(level);
+    const video = activeVideo();
+    if (video) {
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      if (volLevel > 100 && !canBoost(video)) {
+        volLevel = 100;
+      }
+      applyVolume(video);
+      showIndicator((volLevel > 100 ? "🔊 " : "🔉 ") + volLevel + "%", volLevel > 100);
     }
-    let next = clampVol(volLevel + delta);
-    if (next > 100 && !canBoost(video)) {
-      next = 100;
-    }
-    volLevel = next;
-    applyVolume(video);
-    showIndicator((volLevel > 100 ? "🔊 " : "🔉 ") + volLevel + "%", volLevel > 100);
+    chrome.storage.local.set({ mwVolumeLevel: volLevel });
     updatePanel();
-  }
-
-  function onWheel(e) {
-    if (!mediaOn) {
-      return;
-    }
-    const video = videoFor(e.target);
-    if (!video) {
-      return;
-    }
-    e.preventDefault();
-    e.stopPropagation();
-    changeVolume(video, e.deltaY < 0 ? VOL_STEP : -VOL_STEP);
   }
 
   // --- Speed ----------------------------------------------------------------
@@ -356,10 +328,7 @@
     const r3 = row();
     r3.appendChild(
       btn("🔉 −", "Volume down", function () {
-        const v = activeVideo();
-        if (v) {
-          changeVolume(v, -VOL_STEP);
-        }
+        setVolume(volLevel - VOL_STEP);
       })
     );
     const volLbl = document.createElement("div");
@@ -367,10 +336,7 @@
     r3.appendChild(volLbl);
     r3.appendChild(
       btn("🔊 +", "Volume up", function () {
-        const v = activeVideo();
-        if (v) {
-          changeVolume(v, VOL_STEP);
-        }
+        setVolume(volLevel + VOL_STEP);
       })
     );
     panel.appendChild(r3);
@@ -430,10 +396,12 @@
     if (!mediaOn) {
       return;
     }
-    if (!panel) {
+    const firstTime = !panel;
+    if (firstTime) {
       buildPanel();
     }
-    const willShow = show === undefined ? panel.style.display === "none" : show;
+    const willShow =
+      show === undefined ? firstTime || panel.style.display === "none" : show;
     panel.style.display = willShow ? "block" : "none";
     if (willShow) {
       updatePanel();
@@ -534,7 +502,6 @@
 
   // --- Wiring ---------------------------------------------------------------
 
-  document.addEventListener("wheel", onWheel, { capture: true, passive: false });
   document.addEventListener("pointerdown", cleanLink, true);
   window.addEventListener("popstate", cleanCurrentUrl);
 
@@ -542,9 +509,20 @@
 
   if (chrome.runtime && chrome.runtime.onMessage) {
     chrome.runtime.onMessage.addListener(function (msg) {
-      if (msg && msg.type === "toggle-panel") {
-        togglePanel();
+      if (!msg) {
+        return;
       }
+      if (msg.type === "toggle-panel") {
+        togglePanel();
+      } else if (msg.type === "set-volume") {
+        setVolume(msg.level);
+      }
+    });
+  }
+
+  if (chrome.storage && chrome.storage.local) {
+    chrome.storage.local.get({ mwVolumeLevel: 100 }, function (d) {
+      volLevel = clampVol(d.mwVolumeLevel);
     });
   }
 

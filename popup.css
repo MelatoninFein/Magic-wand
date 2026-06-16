@@ -46,6 +46,91 @@ body {
   opacity: 0.85;
 }
 
+/* Primary action buttons */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 4px;
+}
+
+.action-btn {
+  width: 100%;
+  padding: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--purple);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.action-btn:hover {
+  background: #6a3ff0;
+}
+
+/* Volume slider */
+.volume-box {
+  padding: 10px 16px 14px;
+}
+
+.vol-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.vol-val {
+  color: var(--purple);
+  font-variant-numeric: tabular-nums;
+}
+
+.vol-slider {
+  width: 100%;
+  accent-color: var(--purple);
+}
+
+/* Gear / settings toggle */
+.gear-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  margin: 0 16px 4px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: #f1eefb;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.gear-btn:hover {
+  background: #e8e2f8;
+}
+
+.gear-ico {
+  color: var(--purple-dark);
+  transition: transform 0.25s ease;
+}
+
+.gear-btn[aria-expanded="true"] .gear-ico {
+  transform: rotate(60deg);
+}
+
+.settings-panel {
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
 .settings {
   list-style: none;
   margin: 0;

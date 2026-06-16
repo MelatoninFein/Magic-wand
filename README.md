@@ -47,10 +47,10 @@ There is no keyword matching, so there are **no false positives** on legitimate 
 
 `media.js` runs on every site (and inside frames/embeds) and adds, for any HTML5 `<video>`:
 
-- **Scroll-to-volume** — scroll the mouse wheel over a video to raise/lower volume in 5% steps, with a brief on-screen indicator. Beyond 100% the audio is amplified up to 400% via a Web Audio gain node (great for quiet videos). To avoid muting cross-origin media, boost above 100% only engages for same-origin or streamed (blob/MSE) sources. The level is remembered across videos and sessions.
+- **Volume slider** — the popup has a volume slider (0–400%) that controls the active tab's video. Beyond 100% the audio is amplified via a Web Audio gain node (great for quiet videos). To avoid muting cross-origin media, boost above 100% only engages for same-origin or streamed (blob/MSE) sources. The level is remembered across videos and sessions. No hotkeys or mouse-wheel input are used.
 - **Pop-out panel** — click **"Open media panel"** in the popup for a draggable panel with play/pause, **speed**, volume, loop, **Picture-in-Picture**, and a **sleep timer** that pauses the video after a chosen number of minutes.
 
-Because it touches every site, this feature requires the extension to run on all URLs (Chrome will show an "all sites" access prompt). It does nothing until you scroll over a video or open the panel, and can be turned off in the popup.
+Because it touches every site, this feature requires the extension to run on all URLs (Chrome will show an "all sites" access prompt). It can be turned off in the popup.
 
 ### Clean URLs
 

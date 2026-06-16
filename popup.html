@@ -14,97 +14,92 @@
       </div>
     </header>
 
-    <ul class="settings">
-      <li class="setting">
-        <div class="setting-text">
-          <span class="setting-name">Refresh on play</span>
-          <span class="setting-desc">Reload the page once when a video starts, to fix playback.</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="playFix" />
-          <span class="slider"></span>
-        </label>
-      </li>
+    <!-- Primary actions -->
+    <div class="actions">
+      <button id="openTools" type="button" class="action-btn">🧰 Open tools</button>
+      <button id="openPanel" type="button" class="action-btn">🪄 Open media panel</button>
+      <button id="openMacro" type="button" class="action-btn">🤖 Open macro builder</button>
+    </div>
 
-      <li class="setting">
-        <div class="setting-text">
-          <span class="setting-name">Block Shorts</span>
-          <span class="setting-desc">Hide all Shorts and open them as normal videos.</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="blockShorts" />
-          <span class="slider"></span>
-        </label>
-      </li>
-
-      <li class="setting">
-        <div class="setting-text">
-          <span class="setting-name">Block betting sites</span>
-          <span class="setting-desc">Block gambling &amp; betting sites (~253k domains).</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="blockBetting" />
-          <span class="slider"></span>
-        </label>
-      </li>
-
-      <li class="setting">
-        <div class="setting-text">
-          <span class="setting-name">Media controls (any site)</span>
-          <span class="setting-desc">Scroll over a video for volume (boost &gt;100%); speed, PiP &amp; sleep timer in the panel.</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="mediaControls" />
-          <span class="slider"></span>
-        </label>
-      </li>
-
-      <li class="setting">
-        <div class="setting-text">
-          <span class="setting-name">Clean URLs</span>
-          <span class="setting-desc">Strip tracking junk (utm_, fbclid, gclid…) from links.</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="cleanUrls" />
-          <span class="slider"></span>
-        </label>
-      </li>
-
-      <li class="setting">
-        <div class="setting-text">
-          <span class="setting-name">Dismiss cookie popups</span>
-          <span class="setting-desc">Auto-reject (never accept) &amp; hide consent banners; unlock scrolling.</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="dismissPopups" />
-          <span class="slider"></span>
-        </label>
-      </li>
-
-      <li class="setting">
-        <div class="setting-text">
-          <span class="setting-name">Macros</span>
-          <span class="setting-desc">Build a macro: read a field, fill/click, repeat. Open via the button below.</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="macros" />
-          <span class="slider"></span>
-        </label>
-      </li>
-    </ul>
-
-    <div class="tools">
-      <button id="openTools" type="button" class="tool-btn">🧰 Open tools</button>
-      <button id="openPanel" type="button" class="tool-btn">🪄 Open media panel</button>
-      <button id="openMacro" type="button" class="tool-btn">🤖 Open macro builder</button>
-
-      <div class="timer">
-        <span class="timer-label">⏰ Timer</span>
-        <input id="timerMins" class="timer-input" type="number" min="1" value="10" />
-        <span class="timer-unit">min</span>
-        <button id="timerStart" type="button" class="tool-btn small">Start</button>
+    <!-- Volume slider -->
+    <div class="volume-box">
+      <div class="vol-head">
+        <span>🔊 Volume</span>
+        <span id="volVal" class="vol-val">100%</span>
       </div>
-      <p id="timerStatus" class="timer-status"></p>
+      <input id="volSlider" class="vol-slider" type="range" min="0" max="400" step="5" value="100" />
+    </div>
+
+    <!-- Settings (gear) -->
+    <button id="gear" type="button" class="gear-btn" aria-expanded="false">
+      <svg class="gear-ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <path fill="currentColor" d="M19.14 12.94a7.49 7.49 0 0 0 .05-.94 7.49 7.49 0 0 0-.05-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54a7 7 0 0 0-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.27 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96a7 7 0 0 0 1.62.94l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54a7 7 0 0 0 1.62-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z" />
+      </svg>
+      Settings
+    </button>
+
+    <div id="settingsPanel" class="settings-panel" hidden>
+      <ul class="settings">
+        <li class="setting">
+          <div class="setting-text">
+            <span class="setting-name">Refresh on play</span>
+            <span class="setting-desc">Reload the page once when a video starts, to fix playback.</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="playFix" /><span class="slider"></span></label>
+        </li>
+        <li class="setting">
+          <div class="setting-text">
+            <span class="setting-name">Block Shorts</span>
+            <span class="setting-desc">Hide all Shorts and open them as normal videos.</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="blockShorts" /><span class="slider"></span></label>
+        </li>
+        <li class="setting">
+          <div class="setting-text">
+            <span class="setting-name">Block betting sites</span>
+            <span class="setting-desc">Block gambling &amp; betting sites (~253k domains).</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="blockBetting" /><span class="slider"></span></label>
+        </li>
+        <li class="setting">
+          <div class="setting-text">
+            <span class="setting-name">Media controls</span>
+            <span class="setting-desc">Volume slider + media panel (speed, PiP, sleep timer).</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="mediaControls" /><span class="slider"></span></label>
+        </li>
+        <li class="setting">
+          <div class="setting-text">
+            <span class="setting-name">Clean URLs</span>
+            <span class="setting-desc">Strip tracking junk (utm_, fbclid, gclid…) from links.</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="cleanUrls" /><span class="slider"></span></label>
+        </li>
+        <li class="setting">
+          <div class="setting-text">
+            <span class="setting-name">Dismiss cookie popups</span>
+            <span class="setting-desc">Auto-reject (never accept) &amp; hide consent banners; unlock scrolling.</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="dismissPopups" /><span class="slider"></span></label>
+        </li>
+        <li class="setting">
+          <div class="setting-text">
+            <span class="setting-name">Macros</span>
+            <span class="setting-desc">Build a macro: read a field, fill/click, repeat. Open via the button above.</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="macros" /><span class="slider"></span></label>
+        </li>
+      </ul>
+
+      <div class="tools">
+        <div class="timer">
+          <span class="timer-label">⏰ Timer</span>
+          <input id="timerMins" class="timer-input" type="number" min="1" value="10" />
+          <span class="timer-unit">min</span>
+          <button id="timerStart" type="button" class="tool-btn small">Start</button>
+        </div>
+        <p id="timerStatus" class="timer-status"></p>
+      </div>
     </div>
 
     <p class="footer">Changes apply instantly. Reload open tabs if needed.</p>
