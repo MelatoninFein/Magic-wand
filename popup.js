@@ -6,6 +6,7 @@ const DEFAULTS = {
   blockBetting: true,
   mediaControls: true,
   cleanUrls: true,
+  dismissPopups: true,
 };
 const FIELDS = Object.keys(DEFAULTS);
 

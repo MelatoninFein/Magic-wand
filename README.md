@@ -10,6 +10,7 @@ A lightweight Chrome extension (Manifest V3) adding quality-of-life features and
 4. **Media controls (any site)** — scroll over any HTML5 video to change volume (with boost above 100%), keyboard shortcuts for speed and Picture-in-Picture, and a pop-out control panel with a sleep timer. Works on YouTube, Twitch, Netflix, embeds, etc.
 5. **Clean URLs** — strips tracking parameters (`utm_*`, `fbclid`, `gclid`, …) from the page URL and links.
 6. **Countdown timer** — set a timer from the popup and get a desktop notification when it finishes.
+7. **Dismiss cookie popups** — auto-rejects/closes consent banners and restores scrolling when a modal locks the page.
 
 ## Settings
 
@@ -59,6 +60,10 @@ Because it touches every site, this feature requires the extension to run on all
 
 The popup has a simple countdown timer. Enter minutes and press **Start**; `background.js` schedules a `chrome.alarms` alarm and shows a desktop notification when it finishes. The remaining time is shown in the popup and it can be cancelled there.
 
+### Dismiss cookie popups
+
+`annoyances.js` auto-dismisses cookie-consent / GDPR banners from the major consent platforms (OneTrust, Cookiebot, Quantcast, Didomi, Usercentrics, Sourcepoint, TrustArc, Osano, CookieYes, Complianz, Borlabs, Iubenda, Funding Choices, …). It **clicks the reject button when one exists** (privacy-first), falls back to accept, then hides the banner via CSS, and **restores scrolling** if the page was locked behind a modal. A short-lived `MutationObserver` catches banners that load late. Toggle in the popup.
+
 ## Installation (load unpacked)
 
 1. Download or clone this repository.
@@ -74,6 +79,7 @@ The popup has a simple countdown timer. Enter minutes and press **Start**; `back
 | `manifest.json` | Extension manifest (Manifest V3) |
 | `content.js` | YouTube features (refresh + Shorts) based on saved settings |
 | `media.js` | Site-wide media controls, pop-out panel, sleep timer, clean URLs |
+| `annoyances.js` | Auto-dismiss cookie/consent popups + restore scrolling |
 | `styles.css` | Hides all Shorts UI elements (toggled by a class) |
 | `background.js` | Betting-site ruleset toggle + countdown timer (alarms/notifications) |
 | `rules/betting-domains.json` | Betting/gambling domain blocklist (~253,000 domains) |
