@@ -20,31 +20,6 @@
       <button id="openMacro" type="button" class="action-btn">🤖 Open macro builder</button>
     </div>
 
-    <!-- Color picker -->
-    <div class="mini">
-      <div class="mini-head">🎨 Color picker</div>
-      <div class="row">
-        <button id="eyedrop" type="button" class="btn-sm">Eyedropper</button>
-        <input id="colorInput" type="color" value="#7a4ff6" class="color-input" />
-        <div id="swatch" class="swatch-sm"></div>
-      </div>
-      <div class="row color-vals">
-        <code id="hexVal">#7A4FF6</code>
-        <button class="btn-sm ghost" data-copy="hexVal">Copy</button>
-        <code id="rgbVal">rgb(122, 79, 246)</code>
-        <button class="btn-sm ghost" data-copy="rgbVal">Copy</button>
-      </div>
-    </div>
-
-    <!-- Volume slider -->
-    <div class="volume-box">
-      <div class="vol-head">
-        <span>🔊 Volume</span>
-        <span id="volVal" class="vol-val">100%</span>
-      </div>
-      <input id="volSlider" class="vol-slider" type="range" min="0" max="400" step="5" value="100" />
-    </div>
-
     <!-- QR code (collapsible) -->
     <button id="qrToggle" type="button" class="gear-btn" aria-expanded="false">
       <span class="caret">▸</span> 🔳 QR code
@@ -58,6 +33,35 @@
         <div id="qrOut" class="qr-out"></div>
         <button id="qrDownload" type="button" class="btn-sm ghost full" hidden>Download PNG</button>
       </div>
+    </div>
+
+    <!-- Color picker (collapsible) -->
+    <button id="colorToggle" type="button" class="gear-btn" aria-expanded="false">
+      <span class="caret">▸</span> 🎨 Color picker
+    </button>
+    <div id="colorPanel" class="settings-panel" hidden>
+      <div class="collapse-body">
+        <div class="row">
+          <button id="eyedrop" type="button" class="btn-sm">Eyedropper</button>
+          <input id="colorInput" type="color" value="#16140f" class="color-input" />
+          <div id="swatch" class="swatch-sm"></div>
+        </div>
+        <div class="row color-vals">
+          <code id="hexVal">#16140F</code>
+          <button class="btn-sm ghost" data-copy="hexVal">Copy</button>
+          <code id="rgbVal">rgb(22, 20, 15)</code>
+          <button class="btn-sm ghost" data-copy="rgbVal">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Volume slider -->
+    <div class="volume-box">
+      <div class="vol-head">
+        <span>🔊 Volume</span>
+        <span id="volVal" class="vol-val">100%</span>
+      </div>
+      <input id="volSlider" class="vol-slider" type="range" min="0" max="400" step="5" value="100" />
     </div>
 
     <!-- Settings (gear) -->

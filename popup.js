@@ -165,6 +165,14 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
 // --- Color picker -----------------------------------------------------------
 
+const colorToggle = document.getElementById("colorToggle");
+const colorPanel = document.getElementById("colorPanel");
+colorToggle.addEventListener("click", function () {
+  const show = colorPanel.hidden;
+  colorPanel.hidden = !show;
+  colorToggle.setAttribute("aria-expanded", String(show));
+});
+
 const swatch = document.getElementById("swatch");
 const hexVal = document.getElementById("hexVal");
 const rgbVal = document.getElementById("rgbVal");
@@ -179,7 +187,7 @@ function setColor(hex) {
     "rgb(" + ((n >> 16) & 255) + ", " + ((n >> 8) & 255) + ", " + (n & 255) + ")";
   colorInput.value = hex;
 }
-setColor("#7A4FF6");
+setColor("#16140F");
 
 colorInput.addEventListener("input", function () {
   setColor(colorInput.value);
