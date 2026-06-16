@@ -67,13 +67,16 @@
       indicator = document.createElement("div");
       indicator.style.cssText =
         "position:fixed;top:20px;left:20px;z-index:2147483647;" +
-        "padding:6px 12px;border-radius:8px;background:rgba(0,0,0,0.78);" +
-        "color:#fff;font:600 15px/1.2 Roboto,Arial,sans-serif;" +
+        "padding:6px 12px;border-radius:8px;background:rgba(255,253,248,0.30);" +
+        "-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);" +
+        "border:1px solid rgba(22,20,15,0.18);color:#16140f;" +
+        "font:700 15px/1.2 'Helvetica Neue',Arial,sans-serif;" +
         "pointer-events:none;opacity:0;transition:opacity .15s ease;";
       (document.body || document.documentElement).appendChild(indicator);
     }
     indicator.textContent = text;
-    indicator.style.color = highlight ? "#ffd140" : "#fff";
+    indicator.style.color = "#16140f";
+    void highlight;
     indicator.style.opacity = "1";
     clearTimeout(indicatorTimer);
     indicatorTimer = setTimeout(function () {
@@ -231,7 +234,7 @@
     b.title = title || "";
     b.style.cssText =
       "flex:1;min-width:34px;padding:7px 6px;margin:0;border:none;border-radius:7px;" +
-      "background:#2a2350;color:#fff;font:600 13px Roboto,Arial,sans-serif;cursor:pointer;";
+      "background:#16140f;color:#f2efe6;font:700 13px 'Helvetica Neue',Arial,sans-serif;cursor:pointer;";
     b.addEventListener("click", function (e) {
       e.preventDefault();
       onClick();
@@ -249,9 +252,11 @@
     panel = document.createElement("div");
     panel.style.cssText =
       "position:fixed;top:80px;right:24px;z-index:2147483647;width:230px;" +
-      "background:linear-gradient(135deg,#3a2a78,#241a52);color:#fff;" +
-      "border-radius:14px;padding:12px;box-shadow:0 14px 40px rgba(0,0,0,.5);" +
-      "font:13px Roboto,Arial,sans-serif;user-select:none;";
+      "background:rgba(255,253,248,0.30);" +
+      "-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);" +
+      "color:#16140f;border:1px solid rgba(22,20,15,0.18);" +
+      "border-radius:14px;padding:12px;box-shadow:0 14px 40px rgba(0,0,0,.22);" +
+      "font:13px 'Helvetica Neue',Arial,sans-serif;user-select:none;";
 
     const bar = document.createElement("div");
     bar.style.cssText =
@@ -348,8 +353,9 @@
     sleepInput.min = "1";
     sleepInput.value = "30";
     sleepInput.style.cssText =
-      "width:48px;padding:6px;border:none;border-radius:7px;text-align:center;" +
-      "font:600 13px Roboto,Arial,sans-serif;";
+      "width:48px;padding:6px;border:1px solid rgba(22,20,15,0.18);border-radius:7px;" +
+      "text-align:center;background:#fffdf8;color:#16140f;" +
+      "font:700 13px 'Helvetica Neue',Arial,sans-serif;";
     r4.appendChild(sleepInput);
     const sleepLbl = document.createElement("div");
     sleepLbl.style.cssText = "flex:1;text-align:center;font-size:12px;opacity:.9;";
@@ -382,7 +388,7 @@
     panel._speedLbl.textContent = (v ? fmtSpeed(v.playbackRate) : "1") + "×";
     panel._volLbl.textContent = volLevel + "%";
     panel._playRow._playBtn.textContent = v && !v.paused ? "⏸" : "⏯";
-    panel._playRow._loopBtn.style.background = v && v.loop ? "#7a4ff6" : "#2a2350";
+    panel._playRow._loopBtn.style.background = v && v.loop ? "#6f6a5e" : "#16140f";
     if (sleepEnd) {
       panel._sleepBtn.textContent = "Stop";
       panel._sleepLbl.textContent = "⏳ " + sleepRemaining();

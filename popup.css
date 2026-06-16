@@ -1,10 +1,12 @@
 :root {
-  --purple: #7a4ff6;
-  --purple-dark: #5b21b6;
-  --bg: #ffffff;
-  --text: #1f2233;
-  --muted: #6b7280;
-  --border: #ececf3;
+  --paper: #f2efe6;
+  --ink: #16140f;
+  --ink-2: #2c2820;
+  --muted: #6f6a5e;
+  --border: rgba(22, 20, 15, 0.16);
+  --frost: rgba(255, 253, 248, 0.3); /* 30% frost */
+  --frost-2: rgba(255, 253, 248, 0.55);
+  --blur: blur(6px); /* 6px blur */
 }
 
 * {
@@ -14,9 +16,9 @@
 body {
   width: 300px;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--text);
-  background: var(--bg);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
 }
 
 .header {
@@ -24,8 +26,11 @@ body {
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: linear-gradient(135deg, var(--purple), var(--purple-dark));
-  color: #fff;
+  background: var(--frost);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
 }
 
 .logo {
@@ -37,13 +42,14 @@ body {
 .title {
   margin: 0;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
   margin: 2px 0 0;
   font-size: 12px;
-  opacity: 0.85;
+  color: var(--muted);
 }
 
 /* Primary action buttons */
@@ -58,9 +64,9 @@ body {
   width: 100%;
   padding: 11px;
   font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  background: var(--purple);
+  font-weight: 700;
+  color: var(--paper);
+  background: var(--ink);
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -69,7 +75,7 @@ body {
 }
 
 .action-btn:hover {
-  background: #6a3ff0;
+  background: var(--ink-2);
 }
 
 /* Volume slider */
@@ -82,24 +88,27 @@ body {
   justify-content: space-between;
   align-items: center;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 8px;
 }
 
 .vol-val {
-  color: var(--purple);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
 .vol-slider {
   width: 100%;
-  accent-color: var(--purple);
+  accent-color: var(--ink);
 }
 
-/* Mini tools (QR + color) in the main menu */
+/* Mini tools (QR + color) */
 .mini {
   padding: 8px 16px 12px;
   border-top: 1px solid var(--border);
+  background: var(--frost);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
 }
 
 .mini-head {
@@ -108,7 +117,8 @@ body {
   margin-bottom: 8px;
 }
 
-.mini .row {
+.mini .row,
+.row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -122,14 +132,16 @@ body {
   font-size: 13px;
   border: 1px solid var(--border);
   border-radius: 8px;
+  background: var(--frost-2);
+  color: var(--ink);
 }
 
 .btn-sm {
   padding: 8px 12px;
   font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  background: var(--purple);
+  font-weight: 700;
+  color: var(--paper);
+  background: var(--ink);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -137,12 +149,13 @@ body {
 }
 
 .btn-sm:hover {
-  background: #6a3ff0;
+  background: var(--ink-2);
 }
 
 .btn-sm.ghost {
-  background: #eee9fb;
-  color: var(--purple-dark);
+  background: var(--frost-2);
+  color: var(--ink);
+  border: 1px solid var(--border);
 }
 
 .btn-sm.full {
@@ -175,7 +188,7 @@ body {
   height: 34px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  background: #7a4ff6;
+  background: var(--ink);
 }
 
 .color-vals {
@@ -187,7 +200,7 @@ body {
   flex: 1;
 }
 
-/* Gear / settings toggle */
+/* Gear / collapsible toggles */
 .gear-btn {
   display: flex;
   align-items: center;
@@ -196,25 +209,37 @@ body {
   margin: 0 16px 4px;
   padding: 10px 12px;
   font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  background: #f1eefb;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--frost);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
   border: 1px solid var(--border);
   border-radius: 10px;
   cursor: pointer;
 }
 
 .gear-btn:hover {
-  background: #e8e2f8;
+  background: var(--frost-2);
 }
 
 .gear-ico {
-  color: var(--purple-dark);
+  color: var(--ink);
   transition: transform 0.25s ease;
 }
 
 .gear-btn[aria-expanded="true"] .gear-ico {
   transform: rotate(60deg);
+}
+
+.caret {
+  display: inline-block;
+  transition: transform 0.2s ease;
+  color: var(--ink);
+}
+
+.gear-btn[aria-expanded="true"] .caret {
+  transform: rotate(90deg);
 }
 
 .settings-panel {
@@ -224,16 +249,6 @@ body {
 
 .collapse-body {
   padding: 10px 16px 14px;
-}
-
-.caret {
-  display: inline-block;
-  transition: transform 0.2s ease;
-  color: var(--purple-dark);
-}
-
-.gear-btn[aria-expanded="true"] .caret {
-  transform: rotate(90deg);
 }
 
 .settings {
@@ -263,7 +278,7 @@ body {
 
 .setting-name {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .setting-desc {
@@ -290,7 +305,7 @@ body {
   position: absolute;
   inset: 0;
   cursor: pointer;
-  background: #cfd2dc;
+  background: #cdc8ba;
   border-radius: 24px;
   transition: background 0.2s;
 }
@@ -302,61 +317,44 @@ body {
   width: 18px;
   left: 3px;
   bottom: 3px;
-  background: #fff;
+  background: #fffdf8;
   border-radius: 50%;
   transition: transform 0.2s;
 }
 
 .switch input:checked + .slider {
-  background: var(--purple);
+  background: var(--ink);
 }
 
 .switch input:checked + .slider::before {
   transform: translateX(18px);
 }
 
-/* Tools section */
+/* Timer */
 .tools {
   padding: 12px 16px 4px;
-  border-top: 1px solid var(--border);
-}
-
-.tool-btn {
-  width: 100%;
-  padding: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  background: var(--purple);
-  border: none;
-  border-radius: 9px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.tool-btn:hover {
-  background: #6a3ff0;
-}
-
-.tool-btn + .tool-btn {
-  margin-top: 8px;
 }
 
 .tool-btn.small {
-  width: auto;
   padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--paper);
+  background: var(--ink);
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
 }
 
 .timer {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 12px;
 }
 
 .timer-label {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   flex: 1;
 }
 
@@ -367,6 +365,8 @@ body {
   font-size: 14px;
   border: 1px solid var(--border);
   border-radius: 7px;
+  background: var(--frost-2);
+  color: var(--ink);
 }
 
 .timer-unit {
@@ -378,9 +378,9 @@ body {
   margin: 8px 0 0;
   min-height: 14px;
   font-size: 12px;
-  color: var(--purple);
+  color: var(--ink);
   text-align: center;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .footer {

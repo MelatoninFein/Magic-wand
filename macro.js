@@ -71,7 +71,7 @@
         outline = document.createElement("div");
         outline.style.cssText =
           "position:fixed;z-index:2147483647;pointer-events:none;" +
-          "border:2px solid #7a4ff6;background:rgba(122,79,246,.15);border-radius:3px;";
+          "border:2px solid #16140f;background:rgba(22,20,15,.12);border-radius:3px;";
         document.body.appendChild(outline);
       }
       outline.style.display = "block";
@@ -208,9 +208,10 @@
   function mkBtn(label, bg, onClick) {
     const b = document.createElement("button");
     b.textContent = label;
+    void bg;
     b.style.cssText =
       "padding:6px 9px;border:none;border-radius:7px;cursor:pointer;" +
-      "font:600 12px Roboto,Arial,sans-serif;color:#fff;background:" + bg + ";";
+      "font:700 12px 'Helvetica Neue',Arial,sans-serif;color:#f2efe6;background:#16140f;";
     b.addEventListener("click", onClick);
     return b;
   }
@@ -278,9 +279,11 @@
     panel = document.createElement("div");
     panel.style.cssText =
       "position:fixed;top:90px;left:24px;z-index:2147483647;width:270px;" +
-      "background:linear-gradient(135deg,#3a2a78,#241a52);color:#fff;" +
-      "border-radius:14px;padding:12px;box-shadow:0 14px 40px rgba(0,0,0,.5);" +
-      "font:13px Roboto,Arial,sans-serif;";
+      "background:rgba(255,253,248,0.30);" +
+      "-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);" +
+      "color:#16140f;border:1px solid rgba(22,20,15,0.18);" +
+      "border-radius:14px;padding:12px;box-shadow:0 14px 40px rgba(0,0,0,.22);" +
+      "font:13px 'Helvetica Neue',Arial,sans-serif;";
 
     const bar = document.createElement("div");
     bar.style.cssText =
@@ -306,7 +309,7 @@
 
     const list = document.createElement("div");
     list.style.cssText =
-      "margin:8px 0;max-height:140px;overflow:auto;border-top:1px solid rgba(255,255,255,.15);border-bottom:1px solid rgba(255,255,255,.15);padding:4px 0;";
+      "margin:8px 0;max-height:140px;overflow:auto;border-top:1px solid rgba(22,20,15,.15);border-bottom:1px solid rgba(22,20,15,.15);padding:4px 0;";
     panel._list = list;
     panel.appendChild(list);
 
@@ -317,7 +320,8 @@
     count.type = "number";
     count.min = "1";
     count.value = "1";
-    count.style.cssText = "width:48px;padding:4px;border:none;border-radius:6px;";
+    count.style.cssText =
+      "width:48px;padding:4px;border:1px solid rgba(22,20,15,0.18);border-radius:6px;background:#fffdf8;color:#16140f;";
     const every = document.createElement("span");
     every.textContent = "× every";
     const interval = document.createElement("input");
@@ -325,7 +329,8 @@
     interval.min = "0";
     interval.step = "0.5";
     interval.value = "1";
-    interval.style.cssText = "width:48px;padding:4px;border:none;border-radius:6px;";
+    interval.style.cssText =
+      "width:48px;padding:4px;border:1px solid rgba(22,20,15,0.18);border-radius:6px;background:#fffdf8;color:#16140f;";
     cfg.appendChild(count);
     cfg.appendChild(every);
     cfg.appendChild(interval);
@@ -348,8 +353,8 @@
     logEl = document.createElement("textarea");
     logEl.readOnly = true;
     logEl.style.cssText =
-      "width:100%;height:80px;margin-top:8px;border:none;border-radius:7px;" +
-      "background:rgba(0,0,0,.3);color:#cfe;font:11px monospace;padding:6px;resize:vertical;";
+      "width:100%;height:80px;margin-top:8px;border:1px solid rgba(22,20,15,0.18);border-radius:7px;" +
+      "background:rgba(255,253,248,0.5);color:#16140f;font:11px monospace;padding:6px;resize:vertical;";
     panel.appendChild(logEl);
 
     document.body.appendChild(panel);
