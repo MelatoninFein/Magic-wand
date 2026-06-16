@@ -29,3 +29,47 @@ chrome.storage.onChanged.addListener(function (changes, area) {
     applyBettingRuleset(!!changes.blockBetting.newValue);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Countdown timer (alarms + notification). Driven from the popup.
+// ---------------------------------------------------------------------------
+
+const TIMER_ALARM = "mw-timer";
+
+chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+  if (!msg) {
+    return;
+  }
+  if (msg.type === "start-timer") {
+    const ms = Math.max(1, Math.round((msg.minutes || 0) * 60000));
+    const end = Date.now() + ms;
+    const label = msg.label || "Timer";
+    chrome.storage.local.set({ mwTimerEnd: end, mwTimerLabel: label });
+    chrome.alarms.create(TIMER_ALARM, { when: end });
+    sendResponse({ ok: true, end: end });
+    return true;
+  }
+  if (msg.type === "cancel-timer") {
+    chrome.alarms.clear(TIMER_ALARM);
+    chrome.storage.local.remove(["mwTimerEnd", "mwTimerLabel"]);
+    sendResponse({ ok: true });
+    return true;
+  }
+});
+
+chrome.alarms.onAlarm.addListener(function (alarm) {
+  if (alarm.name !== TIMER_ALARM) {
+    return;
+  }
+  chrome.storage.local.get(["mwTimerLabel"], function (d) {
+    chrome.notifications.create("mw-timer-" + Date.now(), {
+      type: "basic",
+      iconUrl: "icons/icon128.png",
+      title: "⏰ " + (d.mwTimerLabel || "Timer") + " finished",
+      message: "Your Magic Wand timer is done.",
+      priority: 2,
+      requireInteraction: true,
+    });
+    chrome.storage.local.remove(["mwTimerEnd", "mwTimerLabel"]);
+  });
+});

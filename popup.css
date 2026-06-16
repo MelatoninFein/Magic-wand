@@ -125,6 +125,70 @@ body {
   transform: translateX(18px);
 }
 
+/* Tools section */
+.tools {
+  padding: 12px 16px 4px;
+  border-top: 1px solid var(--border);
+}
+
+.tool-btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--purple);
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tool-btn:hover {
+  background: #6a3ff0;
+}
+
+.tool-btn.small {
+  width: auto;
+  padding: 8px 14px;
+}
+
+.timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.timer-label {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.timer-input {
+  width: 56px;
+  padding: 7px;
+  text-align: center;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.timer-unit {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.timer-status {
+  margin: 8px 0 0;
+  min-height: 14px;
+  font-size: 12px;
+  color: var(--purple);
+  text-align: center;
+  font-weight: 600;
+}
+
 .footer {
   margin: 0;
   padding: 10px 16px 14px;

@@ -7,7 +7,9 @@ A lightweight Chrome extension (Manifest V3) adding quality-of-life features and
 1. **Refresh on play** — refreshes the YouTube page once when a video starts playing, resolving playback glitches that sometimes occur on the first load of a video.
 2. **Block Shorts** — hides every Shorts shelf, sidebar link, thumbnail, and tab, and redirects any `/shorts/<id>` URL to the normal `/watch?v=<id>` player.
 3. **Block betting sites** — blocks gambling / betting sites (a ~253,000-domain blocklist).
-4. **Media controls (any site)** — scroll over any HTML5 video to change volume (with boost above 100%), and use keyboard shortcuts to change playback speed. Works on YouTube, Twitch, Netflix, embeds, etc.
+4. **Media controls (any site)** — scroll over any HTML5 video to change volume (with boost above 100%), keyboard shortcuts for speed and Picture-in-Picture, and a pop-out control panel with a sleep timer. Works on YouTube, Twitch, Netflix, embeds, etc.
+5. **Clean URLs** — strips tracking parameters (`utm_*`, `fbclid`, `gclid`, …) from the page URL and links.
+6. **Countdown timer** — set a timer from the popup and get a desktop notification when it finishes.
 
 ## Settings
 
@@ -44,8 +46,18 @@ There is no keyword matching, so there are **no false positives** on legitimate 
 
 - **Scroll-to-volume** — scroll the mouse wheel over a video to raise/lower volume in 5% steps, with a brief on-screen indicator. Beyond 100% the audio is amplified up to 400% via a Web Audio gain node (great for quiet videos). To avoid muting cross-origin media, boost above 100% only engages for same-origin or streamed (blob/MSE) sources. The level is remembered across videos and sessions.
 - **Speed control** — `S` slows down, `D` speeds up (0.25× steps), and `R` resets to 1×. Keys are ignored while typing in a text field.
+- **Picture-in-Picture** — press `P` to pop any video out into a floating window (or use the panel button).
+- **Pop-out panel** — press `Alt+M` (or click "Open media panel" in the popup) for a draggable panel with play/pause, speed, volume, loop, PiP, and a **sleep timer** that pauses the video after a chosen number of minutes.
 
-Because it touches every site, this feature requires the extension to run on all URLs (Chrome will show an "all sites" access prompt). It does nothing until you scroll over a video or press a speed key, and can be turned off in the popup.
+Because it touches every site, this feature requires the extension to run on all URLs (Chrome will show an "all sites" access prompt). It does nothing until you scroll over a video or press a key, and can be turned off in the popup.
+
+### Clean URLs
+
+`media.js` removes tracking parameters (`utm_source`, `utm_medium`, `fbclid`, `gclid`, `mc_eid`, `igshid`, etc.) from the address bar on page load and rewrites links' `href` so the cleaned URL is what you navigate to and copy. Toggle in the popup.
+
+### Countdown timer
+
+The popup has a simple countdown timer. Enter minutes and press **Start**; `background.js` schedules a `chrome.alarms` alarm and shows a desktop notification when it finishes. The remaining time is shown in the popup and it can be cancelled there.
 
 ## Installation (load unpacked)
 
@@ -61,9 +73,9 @@ Because it touches every site, this feature requires the extension to run on all
 | --- | --- |
 | `manifest.json` | Extension manifest (Manifest V3) |
 | `content.js` | YouTube features (refresh + Shorts) based on saved settings |
-| `media.js` | Site-wide media controls (scroll volume + speed) on any video |
+| `media.js` | Site-wide media controls, pop-out panel, sleep timer, clean URLs |
 | `styles.css` | Hides all Shorts UI elements (toggled by a class) |
-| `background.js` | Enables/disables the betting-site ruleset |
+| `background.js` | Betting-site ruleset toggle + countdown timer (alarms/notifications) |
 | `rules/betting-domains.json` | Betting/gambling domain blocklist (~253,000 domains) |
 | `popup.html` / `popup.css` / `popup.js` | Settings popup with on/off switches |
 | `icons/` | Wand logo + toolbar icons |

@@ -10,7 +10,7 @@
       <img class="logo" src="icons/icon48.png" alt="Magic Wand logo" />
       <div>
         <h1 class="title">Magic Wand</h1>
-        <p class="subtitle">YouTube fixes &amp; tweaks</p>
+        <p class="subtitle">Fixes &amp; tweaks for the web</p>
       </div>
     </header>
 
@@ -51,16 +51,39 @@
       <li class="setting">
         <div class="setting-text">
           <span class="setting-name">Media controls (any site)</span>
-          <span class="setting-desc">Scroll to change volume (boost &gt;100%); S / D / R keys for speed.</span>
+          <span class="setting-desc">Scroll for volume (boost &gt;100%); S/D/R speed, P for PiP, Alt+M panel.</span>
         </div>
         <label class="switch">
           <input type="checkbox" id="mediaControls" />
           <span class="slider"></span>
         </label>
       </li>
+
+      <li class="setting">
+        <div class="setting-text">
+          <span class="setting-name">Clean URLs</span>
+          <span class="setting-desc">Strip tracking junk (utm_, fbclid, gclid…) from links.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="cleanUrls" />
+          <span class="slider"></span>
+        </label>
+      </li>
     </ul>
 
-    <p class="footer">Changes apply instantly. Reload open YouTube tabs if needed.</p>
+    <div class="tools">
+      <button id="openPanel" type="button" class="tool-btn">🪄 Open media panel</button>
+
+      <div class="timer">
+        <span class="timer-label">⏰ Timer</span>
+        <input id="timerMins" class="timer-input" type="number" min="1" value="10" />
+        <span class="timer-unit">min</span>
+        <button id="timerStart" type="button" class="tool-btn small">Start</button>
+      </div>
+      <p id="timerStatus" class="timer-status"></p>
+    </div>
+
+    <p class="footer">Changes apply instantly. Reload open tabs if needed.</p>
 
     <script src="popup.js"></script>
   </body>
