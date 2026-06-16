@@ -48,11 +48,9 @@ There is no keyword matching, so there are **no false positives** on legitimate 
 `media.js` runs on every site (and inside frames/embeds) and adds, for any HTML5 `<video>`:
 
 - **Scroll-to-volume** — scroll the mouse wheel over a video to raise/lower volume in 5% steps, with a brief on-screen indicator. Beyond 100% the audio is amplified up to 400% via a Web Audio gain node (great for quiet videos). To avoid muting cross-origin media, boost above 100% only engages for same-origin or streamed (blob/MSE) sources. The level is remembered across videos and sessions.
-- **Speed control** — `S` slows down, `D` speeds up (0.25× steps), and `R` resets to 1×. Keys are ignored while typing in a text field.
-- **Picture-in-Picture** — press `P` to pop any video out into a floating window (or use the panel button).
-- **Pop-out panel** — press `Alt+M` (or click "Open media panel" in the popup) for a draggable panel with play/pause, speed, volume, loop, PiP, and a **sleep timer** that pauses the video after a chosen number of minutes.
+- **Pop-out panel** — click **"Open media panel"** in the popup for a draggable panel with play/pause, **speed**, volume, loop, **Picture-in-Picture**, and a **sleep timer** that pauses the video after a chosen number of minutes.
 
-Because it touches every site, this feature requires the extension to run on all URLs (Chrome will show an "all sites" access prompt). It does nothing until you scroll over a video or press a key, and can be turned off in the popup.
+Because it touches every site, this feature requires the extension to run on all URLs (Chrome will show an "all sites" access prompt). It does nothing until you scroll over a video or open the panel, and can be turned off in the popup.
 
 ### Clean URLs
 
@@ -79,7 +77,7 @@ The popup's **🧰 Open tools** button opens `tools.html`, a built-in toolbox th
 
 ### Macros
 
-`macro.js` adds a small automation builder, opened with **Alt+K** or the popup's "Open macro builder" button. Add steps by picking elements on the page:
+`macro.js` adds a small automation builder, opened with the popup's "Open macro builder" button. Add steps by picking elements on the page:
 
 - **Read field** — grab a field's value (stored as the `{grabbed}` token)
 - **Fill field** — type text into a field; include `{grabbed}` to insert the last read value

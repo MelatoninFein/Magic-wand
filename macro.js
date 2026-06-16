@@ -6,7 +6,7 @@
 //   - Click        : click an element
 //   - Wait         : pause N ms
 // Set a repeat count + interval, then Run/Stop. Saved per-site.
-// Open with Alt+K or the popup's "Open macro builder" button.
+// Open with the popup's "Open macro builder" button.
 
 (function () {
   "use strict";
@@ -412,18 +412,6 @@
   }
 
   // --- Wiring ---------------------------------------------------------------
-
-  document.addEventListener("keydown", function (e) {
-    if (!on || !e.altKey || e.key.toLowerCase() !== "k") {
-      return;
-    }
-    const t = e.target;
-    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) {
-      return;
-    }
-    togglePanel();
-    e.preventDefault();
-  });
 
   if (chrome.runtime && chrome.runtime.onMessage) {
     chrome.runtime.onMessage.addListener(function (msg) {

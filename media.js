@@ -2,8 +2,7 @@
 //
 // Gated by "mediaControls":
 //   - Scroll the wheel over any <video> to change volume (boost up to 400%).
-//   - Keys: S slower, D faster, R reset speed, P picture-in-picture.
-//   - Alt+M (or the popup button) opens a draggable pop-out control panel
+//   - The popup's "Open media panel" button opens a draggable control panel
 //     with play/pause, speed, volume, loop, PiP and a sleep timer.
 // Gated by "cleanUrls":
 //   - Strips tracking parameters (utm_*, fbclid, gclid, …) from the page URL
@@ -467,46 +466,6 @@
 
   // --- Keyboard -------------------------------------------------------------
 
-  function onKey(e) {
-    if (!mediaOn) {
-      return;
-    }
-    const t = e.target;
-    if (
-      t &&
-      (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))
-    ) {
-      return;
-    }
-    // Alt+M toggles the panel.
-    if (e.altKey && e.key.toLowerCase() === "m") {
-      togglePanel();
-      e.preventDefault();
-      return;
-    }
-    if (e.ctrlKey || e.metaKey || e.altKey) {
-      return;
-    }
-    const video = activeVideo();
-    if (!video) {
-      return;
-    }
-    const k = e.key.toLowerCase();
-    if (k === "d") {
-      setSpeed(video, video.playbackRate + SPEED_STEP);
-    } else if (k === "s") {
-      setSpeed(video, video.playbackRate - SPEED_STEP);
-    } else if (k === "r") {
-      setSpeed(video, 1);
-    } else if (k === "p") {
-      togglePip(video);
-    } else {
-      return;
-    }
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
   // --- Clean URLs -----------------------------------------------------------
 
   const TRACKERS = [
@@ -576,7 +535,6 @@
   // --- Wiring ---------------------------------------------------------------
 
   document.addEventListener("wheel", onWheel, { capture: true, passive: false });
-  document.addEventListener("keydown", onKey, true);
   document.addEventListener("pointerdown", cleanLink, true);
   window.addEventListener("popstate", cleanCurrentUrl);
 
