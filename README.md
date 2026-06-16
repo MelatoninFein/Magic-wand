@@ -31,12 +31,14 @@ Each distinct video triggers exactly one refresh per tab session.
 
 ### Block betting sites
 
-Uses Chrome's `declarativeNetRequest` to **block** gambling / betting sites at the network level (the request is cancelled, so there's no loading and no custom page to hang). Two layers catch sites:
+Uses Chrome's `declarativeNetRequest` to **block** gambling / betting sites at the network level (the request is cancelled, so there's no loading and no custom page to hang). The blocklist (`rules/betting.json`) bundles **~4,800 gambling/betting domains** merged from several sources:
 
-- **Premade blocklist** (`rules/betting.json`) — ~1,500 gambling/betting domains, sourced from [The Block List Project](https://github.com/blocklistproject/Lists) and merged with curated mainstream sportsbooks/casinos and popular crypto/skin gambling sites (e.g. Bloxflip, Stake, Gamdom). Matched including subdomains.
-- **Keyword heuristics** — any domain whose host contains `casino`, `sportsbook`, `gambling`, `roulette`, `blackjack`, `bookmaker`, or `wagering`. Deliberately excludes broad terms like bare `bet` to avoid false positives (e.g. `betterhelp.com` is *not* blocked).
+- [StevenBlack's gambling list](https://github.com/StevenBlack/hosts) — the best aggregated gambling blocklist.
+- [The Block List Project](https://github.com/blocklistproject/Lists) gambling list.
+- Curated mainstream sportsbooks/casinos and crypto/skin gambling sites (e.g. Bloxflip, Stake, Gamdom).
+- Swedish-market operators (Spelinspektionen licensees such as Svenska Spel, ATG, Paf, Betano SE, Betinia, Lyllo, Spelo, etc.).
 
-`block` rules need no host permissions, so the extension doesn't request access to all your data. To add more sites, append domains to `rules/betting.json`. The `background.js` service worker enables/disables the ruleset based on the toggle.
+Domains are matched including subdomains. There is no keyword matching, so there are no false positives on legitimate sites. `block` rules need no host permissions, so the extension doesn't request access to all your data. To add more sites, append domains to `rules/betting.json`; the `background.js` service worker enables/disables the ruleset based on the toggle.
 
 ## Installation (load unpacked)
 
@@ -54,7 +56,7 @@ Uses Chrome's `declarativeNetRequest` to **block** gambling / betting sites at t
 | `content.js` | Applies the YouTube features based on saved settings |
 | `styles.css` | Hides all Shorts UI elements (toggled by a class) |
 | `background.js` | Enables/disables the betting-site ruleset |
-| `rules/betting.json` | Betting/gambling block rules (~1,500 domains + keywords) |
+| `rules/betting.json` | Betting/gambling block rules (~4,800 domains) |
 | `popup.html` / `popup.css` / `popup.js` | Settings popup with on/off switches |
 | `icons/` | Wand logo + toolbar icons |
 
