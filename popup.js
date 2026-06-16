@@ -102,7 +102,7 @@ function drawQR(text) {
     return;
   }
   const quiet = 4;
-  const maxPx = 260;
+  const maxPx = 150;
   const cell = Math.max(2, Math.floor(maxPx / (q.size + quiet * 2)));
   const dim = (q.size + quiet * 2) * cell;
   const canvas = document.createElement("canvas");
