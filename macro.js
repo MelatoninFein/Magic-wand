@@ -4,6 +4,11 @@
 //   - Read field   : grab a field's text (stored as {grabbed})
 //   - Fill field   : type text into a field (supports the {grabbed} token)
 //   - Click        : click an element
+//   - Hover        : hover an element
+//   - Key          : press a key (e.g. Enter) on an element
+//   - Scroll       : scroll the page by N pixels
+//   - Scroll to    : scroll an element into view
+//   - Top / Bottom : scroll to the top/bottom of the page
 //   - Wait         : pause N ms
 // Set a repeat count + interval, then Run/Stop. Saved per-site.
 // Open with the popup's "Open macro builder" button.
@@ -154,10 +159,23 @@
   }
 
   async function doStep(step) {
+    // Steps that don't need a picked element.
     if (step.action === "wait") {
       await sleep(step.ms || 500);
       return;
     }
+    if (step.action === "scroll") {
+      window.scrollBy({ top: step.amount || 0, left: 0, behavior: "smooth" });
+      log("🖱️ scroll " + (step.amount || 0) + "px");
+      return;
+    }
+    if (step.action === "scrolltop" || step.action === "scrollbottom") {
+      const y = step.action === "scrolltop" ? 0 : document.body.scrollHeight;
+      window.scrollTo({ top: y, behavior: "smooth" });
+      log("🖱️ scroll " + (step.action === "scrolltop" ? "to top" : "to bottom"));
+      return;
+    }
+
     const el = query(step.selector);
     if (!el) {
       log("⚠️ not found: " + step.selector);
@@ -178,6 +196,33 @@
     } else if (step.action === "click") {
       el.click();
       log("🖱️ clicked");
+    } else if (step.action === "scrollto") {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      log("🎯 scrolled to element");
+    } else if (step.action === "hover") {
+      ["pointerover", "mouseover", "mouseenter", "mousemove"].forEach(function (t) {
+        el.dispatchEvent(
+          new MouseEvent(t, { bubbles: t !== "mouseenter", cancelable: true, view: window })
+        );
+      });
+      log("👆 hovered");
+    } else if (step.action === "key") {
+      el.focus();
+      const key = step.key || "Enter";
+      const code = key === "Enter" ? 13 : key.length === 1 ? key.toUpperCase().charCodeAt(0) : 0;
+      ["keydown", "keypress", "keyup"].forEach(function (t) {
+        el.dispatchEvent(
+          new KeyboardEvent(t, {
+            key: key,
+            code: key.length === 1 ? "Key" + key.toUpperCase() : key,
+            keyCode: code,
+            which: code,
+            bubbles: true,
+            cancelable: true,
+          })
+        );
+      });
+      log("⌨️ key: " + key);
     }
   }
 
@@ -228,6 +273,10 @@
         desc += " “" + (step.value || "") + "”";
       } else if (step.action === "wait") {
         desc += " " + step.ms + "ms";
+      } else if (step.action === "scroll") {
+        desc += " " + step.amount + "px";
+      } else if (step.action === "key") {
+        desc += " " + step.key;
       }
       if (step.selector) {
         desc += "  ⟨" + step.selector.slice(0, 22) + "⟩";
@@ -246,6 +295,7 @@
   }
 
   async function addStep(action) {
+    // Steps that need no element picking.
     if (action === "wait") {
       const ms = parseInt(prompt("Wait how many milliseconds?", "1000"), 10);
       if (!isNaN(ms)) {
@@ -254,6 +304,24 @@
       }
       return;
     }
+    if (action === "scroll") {
+      const px = parseInt(
+        prompt("Scroll how many pixels? (negative = up)", "500"),
+        10
+      );
+      if (!isNaN(px)) {
+        steps.push({ action: "scroll", amount: px });
+        renderSteps();
+      }
+      return;
+    }
+    if (action === "scrolltop" || action === "scrollbottom") {
+      steps.push({ action: action });
+      renderSteps();
+      return;
+    }
+
+    // Element-picking steps.
     log("👉 click an element on the page… (Esc to cancel)");
     const selector = await pickElement();
     if (!selector) {
@@ -269,6 +337,12 @@
         return;
       }
       steps.push({ action: "fill", selector: selector, value: value });
+    } else if (action === "key") {
+      const key = prompt("Key to press (e.g. Enter):", "Enter");
+      if (key === null) {
+        return;
+      }
+      steps.push({ action: "key", selector: selector, key: key });
     } else {
       steps.push({ action: action, selector: selector });
     }
@@ -301,10 +375,16 @@
 
     const add = document.createElement("div");
     add.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;";
-    add.appendChild(mkBtn("+ Read", "#2a7a55", function () { addStep("read"); }));
-    add.appendChild(mkBtn("+ Fill", "#7a4ff6", function () { addStep("fill"); }));
-    add.appendChild(mkBtn("+ Click", "#2a5a7a", function () { addStep("click"); }));
-    add.appendChild(mkBtn("+ Wait", "#6a5a2a", function () { addStep("wait"); }));
+    add.appendChild(mkBtn("+ Read", "", function () { addStep("read"); }));
+    add.appendChild(mkBtn("+ Fill", "", function () { addStep("fill"); }));
+    add.appendChild(mkBtn("+ Click", "", function () { addStep("click"); }));
+    add.appendChild(mkBtn("+ Hover", "", function () { addStep("hover"); }));
+    add.appendChild(mkBtn("+ Key", "", function () { addStep("key"); }));
+    add.appendChild(mkBtn("+ Scroll", "", function () { addStep("scroll"); }));
+    add.appendChild(mkBtn("+ Scroll to", "", function () { addStep("scrollto"); }));
+    add.appendChild(mkBtn("+ Top", "", function () { addStep("scrolltop"); }));
+    add.appendChild(mkBtn("+ Bottom", "", function () { addStep("scrollbottom"); }));
+    add.appendChild(mkBtn("+ Wait", "", function () { addStep("wait"); }));
     panel.appendChild(add);
 
     const list = document.createElement("div");

@@ -78,6 +78,10 @@ Both live directly in the popup and run entirely offline (nothing is sent to any
 - **Read field** — grab a field's value (stored as the `{grabbed}` token)
 - **Fill field** — type text into a field; include `{grabbed}` to insert the last read value
 - **Click** — click an element
+- **Hover** — hover over an element
+- **Key** — press a key (e.g. Enter) on an element
+- **Scroll** — scroll the page by N pixels, or to the top/bottom
+- **Scroll to** — scroll a picked element into view
 - **Wait** — pause N ms
 
 Set a **repeat count** and **interval**, then **Run/Stop**. So "grab text from a field, type it somewhere, then repeat" is: *Read field → Fill field (`{grabbed}`) → Click → repeat ×N*. Macros are saved per-site and fields are filled in a framework-friendly way (native value setter + `input`/`change` events). Toggle in the popup.
