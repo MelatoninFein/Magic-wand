@@ -20,21 +20,6 @@
       <button id="openMacro" type="button" class="action-btn">🤖 Open macro builder</button>
     </div>
 
-    <!-- QR code (collapsible) -->
-    <button id="qrToggle" type="button" class="gear-btn" aria-expanded="false">
-      <span class="caret">▸</span> 🔳 QR code
-    </button>
-    <div id="qrPanel" class="settings-panel" hidden>
-      <div class="collapse-body">
-        <div class="row">
-          <input id="qrInput" class="field" type="text" placeholder="https://…" />
-          <button id="qrGen" type="button" class="btn-sm">Make</button>
-        </div>
-        <div id="qrOut" class="qr-out"></div>
-        <button id="qrDownload" type="button" class="btn-sm ghost full" hidden>Download PNG</button>
-      </div>
-    </div>
-
     <!-- Color picker (collapsible) -->
     <button id="colorToggle" type="button" class="gear-btn" aria-expanded="false">
       <span class="caret">▸</span> 🎨 Color picker
@@ -52,6 +37,21 @@
           <code id="rgbVal">rgb(22, 20, 15)</code>
           <button class="btn-sm ghost" data-copy="rgbVal">Copy</button>
         </div>
+      </div>
+    </div>
+
+    <!-- QR code (collapsible) -->
+    <button id="qrToggle" type="button" class="gear-btn" aria-expanded="false">
+      <span class="caret">▸</span> 🔳 QR code
+    </button>
+    <div id="qrPanel" class="settings-panel" hidden>
+      <div class="collapse-body">
+        <div class="row">
+          <input id="qrInput" class="field" type="text" placeholder="https://…" />
+          <button id="qrGen" type="button" class="btn-sm">Make</button>
+        </div>
+        <div id="qrOut" class="qr-out"></div>
+        <button id="qrDownload" type="button" class="btn-sm ghost full" hidden>Download PNG</button>
       </div>
     </div>
 
