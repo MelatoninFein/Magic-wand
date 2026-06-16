@@ -6,7 +6,8 @@ A lightweight Chrome extension (Manifest V3) adding quality-of-life features and
 
 1. **Refresh on play** — refreshes the YouTube page once when a video starts playing, resolving playback glitches that sometimes occur on the first load of a video.
 2. **Block Shorts** — hides every Shorts shelf, sidebar link, thumbnail, and tab, and redirects any `/shorts/<id>` URL to the normal `/watch?v=<id>` player.
-3. **Block betting sites** — redirects gambling / betting sites to a friendly blocked page.
+3. **Block betting sites** — blocks gambling / betting sites (a ~253,000-domain blocklist).
+4. **Better volume control** — scroll over the YouTube player to change volume, with boost above 100% for quiet videos.
 
 ## Settings
 
@@ -37,6 +38,10 @@ The blocklist (`rules/betting-domains.json`) bundles **~253,000 domains** merged
 
 There is no keyword matching, so there are **no false positives** on legitimate sites — a site is blocked only if its domain is on the list. `block` rules need no host permissions, so the extension doesn't request access to all your data. To add more sites, append domains to `rules/betting-domains.json`; `background.js` enables/disables the ruleset based on the toggle.
 
+### Better volume control
+
+Scroll the mouse wheel over the YouTube player to raise/lower the volume in 5% steps, with a brief on-screen indicator. Beyond 100% the audio is amplified up to 400% using a Web Audio gain node (great for quiet videos), so you can go louder than YouTube normally allows. The chosen level is remembered across videos and sessions.
+
 ## Installation (load unpacked)
 
 1. Download or clone this repository.
@@ -50,8 +55,8 @@ There is no keyword matching, so there are **no false positives** on legitimate 
 | File | Purpose |
 | --- | --- |
 | `manifest.json` | Extension manifest (Manifest V3) |
-| `content.js` | Applies the YouTube features based on saved settings |
-| `styles.css` | Hides all Shorts UI elements (toggled by a class) |
+| `content.js` | Applies the YouTube features (refresh, Shorts, volume) based on saved settings |
+| `styles.css` | Hides Shorts UI + styles the volume indicator |
 | `background.js` | Enables/disables the betting-site ruleset |
 | `rules/betting-domains.json` | Betting/gambling domain blocklist (~253,000 domains) |
 | `popup.html` / `popup.css` / `popup.js` | Settings popup with on/off switches |
