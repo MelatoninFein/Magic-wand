@@ -31,12 +31,12 @@ Each distinct video triggers exactly one refresh per tab session.
 
 ### Block betting sites
 
-Uses Chrome's `declarativeNetRequest` to block gambling / betting sites at the network level and redirect them to `blocked.html`. Two layers catch sites:
+Uses Chrome's `declarativeNetRequest` to **block** gambling / betting sites at the network level (the request is cancelled, so there's no loading and no custom page to hang). Two layers catch sites:
 
-- **Curated domain list** (`rules/betting.json`) — a list of well-known sportsbooks, casinos, and poker sites (matched including subdomains).
-- **Keyword heuristics** — any domain whose host contains `casino`, `sportsbook`, `betting`, `gambling`, `roulette`, `blackjack`, etc.
+- **Premade blocklist** (`rules/betting.json`) — ~1,500 gambling/betting domains, sourced from [The Block List Project](https://github.com/blocklistproject/Lists) and merged with curated mainstream sportsbooks/casinos and popular crypto/skin gambling sites (e.g. Bloxflip, Stake, Gamdom). Matched including subdomains.
+- **Keyword heuristics** — any domain whose host contains `casino`, `sportsbook`, `gambling`, `roulette`, `blackjack`, `bookmaker`, or `wagering`. Deliberately excludes broad terms like bare `bet` to avoid false positives (e.g. `betterhelp.com` is *not* blocked).
 
-There is no way to enumerate *every* betting site, but these two layers cover the large majority. To add more, append domains to the list in `rules/betting.json`. The `background.js` service worker enables/disables the ruleset based on the toggle.
+`block` rules need no host permissions, so the extension doesn't request access to all your data. To add more sites, append domains to `rules/betting.json`. The `background.js` service worker enables/disables the ruleset based on the toggle.
 
 ## Installation (load unpacked)
 
@@ -54,8 +54,7 @@ There is no way to enumerate *every* betting site, but these two layers cover th
 | `content.js` | Applies the YouTube features based on saved settings |
 | `styles.css` | Hides all Shorts UI elements (toggled by a class) |
 | `background.js` | Enables/disables the betting-site ruleset |
-| `rules/betting.json` | Betting/gambling block rules (domains + keywords) |
-| `blocked.html` / `blocked.css` / `blocked.js` | Page shown when a betting site is blocked |
+| `rules/betting.json` | Betting/gambling block rules (~1,500 domains + keywords) |
 | `popup.html` / `popup.css` / `popup.js` | Settings popup with on/off switches |
 | `icons/` | Wand logo + toolbar icons |
 
