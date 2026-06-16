@@ -1,6 +1,6 @@
 // Magic Wand - settings popup logic.
 
-const DEFAULTS = { playFix: true, blockShorts: true };
+const DEFAULTS = { playFix: true, blockShorts: true, blockBetting: true };
 const FIELDS = Object.keys(DEFAULTS);
 
 // Load stored settings and reflect them in the checkboxes.
