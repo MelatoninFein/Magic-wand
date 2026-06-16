@@ -1,8 +1,8 @@
 // Magic Wand - annoyance remover (runs on every site and frame).
 //
 // Gated by "dismissPopups": auto-dismisses cookie-consent / GDPR banners by
-// clicking their reject (preferred) or accept button, hides the banner as a
-// fallback, and restores scrolling when a modal locks the page.
+// clicking their reject button (never accept), hides the banner as a fallback,
+// and restores scrolling when a modal locks the page.
 
 (function () {
   "use strict";
@@ -56,7 +56,7 @@
     document.documentElement.classList.remove("mw-unlock");
   }
 
-  // --- Buttons: reject preferred, then accept -------------------------------
+  // --- Buttons: reject only (never accept) ----------------------------------
 
   const REJECT = [
     "#onetrust-reject-all-handler", ".ot-pc-refuse-all-handler",
@@ -69,28 +69,9 @@
     ".iubenda-cs-reject-btn",
   ];
 
-  const ACCEPT = [
-    "#onetrust-accept-btn-handler",
-    "#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll",
-    "#CybotCookiebotDialogBodyButtonAccept",
-    "#didomi-notice-agree-button",
-    ".cky-btn-accept",
-    ".qc-cmp2-summary-buttons button[mode='primary']",
-    ".osano-cm-acceptAll", ".osano-cm-accept-all",
-    ".fc-cta-consent",
-    "#cmplz-accept", ".cmplz-accept",
-    ".iubenda-cs-accept-btn",
-    "#cookiescript_accept",
-    ".cc-allow", ".cc-dismiss",
-  ];
-
   const REJECT_TEXT = [
     "reject all", "reject", "decline", "only necessary", "necessary only",
     "i do not accept", "disagree", "refuse", "continue without accepting",
-  ];
-  const ACCEPT_TEXT = [
-    "accept all", "accept", "agree", "i accept", "i agree", "allow all",
-    "got it", "ok, got it", "understand", "allow cookies",
   ];
 
   function visible(el) {
@@ -180,12 +161,9 @@
     if (!on) {
       return;
     }
-    if (
-      clickFirst(REJECT) ||
-      clickByText(REJECT_TEXT) ||
-      clickFirst(ACCEPT) ||
-      clickByText(ACCEPT_TEXT)
-    ) {
+    // Only ever click "reject" — never accept. The CSS fallback hides whatever
+    // remains, so banners without a reject button are still removed visually.
+    if (clickFirst(REJECT) || clickByText(REJECT_TEXT)) {
       handled = true;
     }
     injectCSS();

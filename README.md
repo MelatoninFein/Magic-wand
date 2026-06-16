@@ -62,7 +62,7 @@ The popup has a simple countdown timer. Enter minutes and press **Start**; `back
 
 ### Dismiss cookie popups
 
-`annoyances.js` auto-dismisses cookie-consent / GDPR banners from the major consent platforms (OneTrust, Cookiebot, Quantcast, Didomi, Usercentrics, Sourcepoint, TrustArc, Osano, CookieYes, Complianz, Borlabs, Iubenda, Funding Choices, …). It **clicks the reject button when one exists** (privacy-first), falls back to accept, then hides the banner via CSS, and **restores scrolling** if the page was locked behind a modal. A short-lived `MutationObserver` catches banners that load late. Toggle in the popup.
+`annoyances.js` auto-dismisses cookie-consent / GDPR banners from the major consent platforms (OneTrust, Cookiebot, Quantcast, Didomi, Usercentrics, Sourcepoint, TrustArc, Osano, CookieYes, Complianz, Borlabs, Iubenda, Funding Choices, …). It **only ever clicks the reject button** (never accept) — if no reject button exists, it simply hides the banner via CSS instead. It also **restores scrolling** if the page was locked behind a modal. A short-lived `MutationObserver` catches banners that load late. Toggle in the popup.
 
 ## Installation (load unpacked)
 
