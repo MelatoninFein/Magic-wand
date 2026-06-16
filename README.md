@@ -1,8 +1,13 @@
 # YouTube Play Fix
 
-A small Chrome extension (Manifest V3) that **refreshes the YouTube page once when a video starts playing**. This can resolve playback glitches that sometimes occur on the first load of a video.
+A small Chrome extension (Manifest V3) that does two things:
+
+1. **Refreshes the YouTube page once when a video starts playing** — resolves playback glitches that sometimes occur on the first load of a video.
+2. **Fully blocks YouTube Shorts** — hides every Shorts shelf, sidebar link, thumbnail, and tab, and redirects any `/shorts/<id>` URL to the normal `/watch?v=<id>` player.
 
 ## How it works
+
+### Play fix
 
 A content script runs on `youtube.com` and listens for the `play` event on the page's video element. When a video starts:
 
@@ -11,6 +16,11 @@ A content script runs on `youtube.com` and listens for the `play` event on the p
 3. After the reload the video autoplays again, but the flag is now set — so it **does not refresh again**, avoiding an infinite reload loop.
 
 Each distinct video triggers exactly one refresh per tab session.
+
+### Shorts blocking
+
+- `styles.css` is injected at `document_start` and hides all Shorts UI (shelves, sidebar entries, thumbnails, the Shorts tab/chip) before the page renders, so there's no flash.
+- `content.js` redirects `/shorts/<id>` URLs to `/watch?v=<id>` (both on first load and on YouTube's in-page navigations) and removes any Shorts shelves that slip through, keeping the layout gap-free.
 
 ## Installation (load unpacked)
 
@@ -25,7 +35,8 @@ Each distinct video triggers exactly one refresh per tab session.
 | File | Purpose |
 | --- | --- |
 | `manifest.json` | Extension manifest (Manifest V3) |
-| `content.js` | Content script that detects playback and refreshes |
+| `content.js` | Detects playback (refresh) and redirects/removes Shorts |
+| `styles.css` | Hides all Shorts UI elements |
 | `icons/` | Toolbar / store icons |
 
 ## Notes

@@ -1,0 +1,43 @@
+/*
+ * YouTube Play Fix - Shorts blocking styles.
+ *
+ * Hides every Shorts surface across desktop and mobile YouTube. Selectors use
+ * href-based matching where possible so they work regardless of UI language.
+ */
+
+/* --- Shorts links in the left sidebar (full + mini) --- */
+ytd-guide-entry-renderer:has(a[title="Shorts"]),
+ytd-guide-entry-renderer:has(a[href="/shorts"]),
+ytd-mini-guide-entry-renderer:has(a[title="Shorts"]),
+ytd-mini-guide-entry-renderer:has(a[href="/shorts"]),
+ytm-pivot-bar-item-renderer:has(> div.pivot-shorts) {
+  display: none !important;
+}
+
+/* --- Shorts shelves / sections on home, subscriptions, search --- */
+ytd-rich-shelf-renderer[is-shorts],
+ytd-reel-shelf-renderer,
+ytm-reel-shelf-renderer,
+ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
+ytd-rich-section-renderer:has(ytd-reel-shelf-renderer),
+grid-shelf-view-model:has(ytm-shorts-lockup-view-model),
+ytd-item-section-renderer:has(ytd-reel-shelf-renderer) {
+  display: none !important;
+}
+
+/* --- Individual Shorts thumbnails / lockups in feeds and search --- */
+ytm-shorts-lockup-view-model,
+ytm-shorts-lockup-view-model-v2,
+ytd-video-renderer:has(a[href^="/shorts/"]),
+ytd-grid-video-renderer:has(a[href^="/shorts/"]),
+ytd-rich-item-renderer:has(a[href^="/shorts/"]),
+ytd-compact-video-renderer:has(a[href^="/shorts/"]) {
+  display: none !important;
+}
+
+/* --- "Shorts" tab/chip on channel pages and filter bars --- */
+yt-tab-shape[tab-title="Shorts"],
+tp-yt-paper-tab:has(a[href$="/shorts"]),
+yt-chip-cloud-chip-renderer:has([title="Shorts"]) {
+  display: none !important;
+}

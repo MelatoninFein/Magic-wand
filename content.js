@@ -1,11 +1,45 @@
 // YouTube Play Fix
 //
-// Refreshes the page once when a YouTube video is started playing.
-// A per-video flag stored in sessionStorage prevents an infinite reload loop,
-// since the video will autoplay (and fire "play" again) after the refresh.
+// Two features:
+//   1. Refresh the page once when a video starts playing (fixes playback
+//      glitches on first load).
+//   2. Fully block YouTube Shorts: hide every Shorts element (via styles.css)
+//      and redirect any /shorts/<id> URL to the normal /watch?v=<id> player.
 
 (function () {
   "use strict";
+
+  // ---------------------------------------------------------------------------
+  // Feature 2 (part A): redirect Shorts URLs to the regular watch page.
+  // ---------------------------------------------------------------------------
+
+  // If the current URL is a Shorts page, rewrite it to the standard watch URL.
+  // Returns true if a redirect was performed.
+  function redirectShorts() {
+    const match = window.location.pathname.match(/^\/shorts\/([\w-]+)/);
+    if (!match) {
+      return false;
+    }
+    const watchUrl =
+      window.location.origin + "/watch?v=" + match[1] + window.location.hash;
+    window.location.replace(watchUrl);
+    return true;
+  }
+
+  // Run as early as possible so the Shorts player never gets a chance to load.
+  if (redirectShorts()) {
+    return;
+  }
+
+  // YouTube is a single-page app, so also catch in-page navigations to Shorts.
+  window.addEventListener("yt-navigate-start", redirectShorts, true);
+  window.addEventListener("yt-navigate-finish", redirectShorts, true);
+  document.addEventListener("yt-navigate-start", redirectShorts, true);
+  document.addEventListener("yt-navigate-finish", redirectShorts, true);
+
+  // ---------------------------------------------------------------------------
+  // Feature 1: refresh once when a video starts playing.
+  // ---------------------------------------------------------------------------
 
   // Returns a stable identifier for the currently loaded video, or null when
   // we are not on a watch page.
@@ -49,12 +83,36 @@
     video.addEventListener("play", onPlay);
   }
 
-  function scan() {
-    document.querySelectorAll("video").forEach(attach);
+  // ---------------------------------------------------------------------------
+  // Feature 2 (part B): remove Shorts shelves/links the CSS can't fully reach.
+  // ---------------------------------------------------------------------------
+
+  // CSS handles hiding, but we also remove obvious Shorts shelves so they don't
+  // occupy layout space, regardless of the browser's :has() support.
+  const SHORTS_SHELF_SELECTORS = [
+    "ytd-rich-shelf-renderer[is-shorts]",
+    "ytd-reel-shelf-renderer",
+    "ytm-reel-shelf-renderer",
+  ];
+
+  function removeShortsShelves() {
+    SHORTS_SHELF_SELECTORS.forEach(function (sel) {
+      document.querySelectorAll(sel).forEach(function (el) {
+        // Drop the surrounding rich-section wrapper when present so no empty
+        // gap is left behind.
+        const wrapper = el.closest("ytd-rich-section-renderer");
+        (wrapper || el).remove();
+      });
+    });
   }
 
-  // Video elements are created/replaced dynamically by YouTube's SPA, so watch
-  // the DOM for new ones and bind as they appear.
+  function scan() {
+    document.querySelectorAll("video").forEach(attach);
+    removeShortsShelves();
+  }
+
+  // Elements are created/replaced dynamically by YouTube's SPA, so watch the
+  // DOM and re-apply as content appears.
   const observer = new MutationObserver(scan);
   observer.observe(document.documentElement, {
     childList: true,
