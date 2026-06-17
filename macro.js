@@ -2,7 +2,8 @@
 //
 // Build a small automation: pick fields/buttons on the page and add steps:
 //   - Read field   : grab a field's text (stored as {grabbed})
-//   - Fill field   : type text into a field (supports the {grabbed} token)
+//   - Fill field   : type text into a field. Tokens: {grabbed} = last read
+//                    value, {counter} = auto-increment number (start + step)
 //   - Click        : click an element
 //   - Hover        : hover an element
 //   - Key          : press a key (e.g. Enter) on an element
@@ -23,6 +24,7 @@
   let running = false;
   let stopFlag = false;
   let lastGrabbed = "";
+  let counterValue = ""; // current value of the {counter} token during a run
   const STORE_KEY = "mwMacro:" + location.hostname;
 
   // --- Element selector ------------------------------------------------------
@@ -136,6 +138,16 @@
     });
   }
 
+  // Zero-pad a number to a given width (keeps a leading minus outside padding).
+  function padNum(n, width) {
+    const neg = n < 0;
+    let s = String(Math.abs(n));
+    while (s.length < width) {
+      s = "0" + s;
+    }
+    return (neg ? "-" : "") + s;
+  }
+
   function setNativeValue(el, value) {
     const proto =
       el.tagName === "TEXTAREA"
@@ -185,7 +197,8 @@
       lastGrabbed = el.value !== undefined ? el.value : el.textContent.trim();
       log("📋 read: " + lastGrabbed);
     } else if (step.action === "fill") {
-      const text = (step.value || "").split("{grabbed}").join(lastGrabbed);
+      let text = (step.value || "").split("{grabbed}").join(lastGrabbed);
+      text = text.split("{counter}").join(counterValue);
       if (el.value !== undefined) {
         el.focus();
         setNativeValue(el, text);
@@ -234,12 +247,24 @@
     stopFlag = false;
     const count = Math.max(1, parseInt(panel._count.value, 10) || 1);
     const interval = Math.max(0, parseFloat(panel._interval.value) || 0) * 1000;
+
+    // {counter} setup: zero-pad to the width of the start value.
+    const startStr = (panel._counterStart.value || "0").trim();
+    const width = startStr.length;
+    let counterNum = parseInt(startStr, 10);
+    if (isNaN(counterNum)) {
+      counterNum = 0;
+    }
+    const counterStep = parseInt(panel._counterStep.value, 10) || 1;
+
     log("▶️ run ×" + count);
     for (let i = 0; i < count && !stopFlag; i++) {
+      counterValue = padNum(counterNum, width);
       for (let s = 0; s < steps.length && !stopFlag; s++) {
         await doStep(steps[s]);
         await sleep(250);
       }
+      counterNum += counterStep;
       if (i < count - 1 && !stopFlag) {
         await sleep(interval);
       }
@@ -330,8 +355,9 @@
     }
     if (action === "fill") {
       const value = prompt(
-        "Text to type (use {grabbed} to insert the last read value):",
-        "{grabbed}"
+        "Text to type. Tokens: {grabbed} = last read value, " +
+          "{counter} = auto-increment number (set start/step below).",
+        "{counter}"
       );
       if (value === null) {
         return;
@@ -419,6 +445,31 @@
     panel._interval = interval;
     panel.appendChild(cfg);
 
+    // Counter config (for the {counter} token in Fill steps).
+    const cfg2 = document.createElement("div");
+    cfg2.style.cssText =
+      "display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;";
+    cfg2.appendChild(document.createTextNode("{counter}"));
+    const cStart = document.createElement("input");
+    cStart.type = "text";
+    cStart.value = "00001";
+    cStart.title = "Start value (its length sets zero-padding)";
+    cStart.style.cssText =
+      "width:64px;padding:4px;border:1px solid rgba(22,20,15,0.18);border-radius:6px;background:#fffdf8;color:#16140f;text-align:center;";
+    cfg2.appendChild(cStart);
+    cfg2.appendChild(document.createTextNode("+"));
+    const cStep = document.createElement("input");
+    cStep.type = "number";
+    cStep.value = "1";
+    cStep.title = "Amount added each loop";
+    cStep.style.cssText =
+      "width:48px;padding:4px;border:1px solid rgba(22,20,15,0.18);border-radius:6px;background:#fffdf8;color:#16140f;";
+    cfg2.appendChild(cStep);
+    cfg2.appendChild(document.createTextNode("/loop"));
+    panel._counterStart = cStart;
+    panel._counterStep = cStep;
+    panel.appendChild(cfg2);
+
     const ctrl = document.createElement("div");
     ctrl.style.cssText = "display:flex;gap:6px;margin-top:8px;";
     ctrl.appendChild(mkBtn("▶ Run", "#2a7a55", run));
@@ -446,6 +497,8 @@
       steps: steps,
       count: panel._count.value,
       interval: panel._interval.value,
+      counterStart: panel._counterStart.value,
+      counterStep: panel._counterStep.value,
     };
     chrome.storage.local.set({ [STORE_KEY]: data }, function () {
       log("💾 saved for " + location.hostname);
@@ -459,6 +512,8 @@
         steps = data.steps;
         if (data.count) panel._count.value = data.count;
         if (data.interval) panel._interval.value = data.interval;
+        if (data.counterStart) panel._counterStart.value = data.counterStart;
+        if (data.counterStep) panel._counterStep.value = data.counterStep;
         renderSteps();
       }
     });
