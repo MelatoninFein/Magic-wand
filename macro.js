@@ -450,42 +450,51 @@
 
     log("▶️ run ×" + st.total + (resume ? " (resumed @ " + (st.index + 1) + ")" : ""));
 
-    for (; st.index < st.total && !stopFlag; st.index++) {
+    let i = st.index; // next iteration to run (0-based)
+    while (i < st.total && !stopFlag) {
+      // Persist the resume point BEFORE running the (possibly navigating)
+      // steps: if a step navigates during this iteration, the next page load
+      // resumes exactly at i+1 — no double counting, no skipped iteration.
+      st.index = i + 1;
       if (st.autoCounter) {
         // Derived from the iteration index so it stays correct after a reload.
-        counterValue = padNum(counterStart + st.index * counterStep, counterWidth);
+        counterValue = padNum(counterStart + i * counterStep, counterWidth);
       }
       st.counterTick = counterTick;
-      lsSaveRun(st); // persist progress before the (possibly navigating) steps
+      lsSaveRun(st);
       for (let s = 0; s < steps.length && !stopFlag; s++) {
         await doStep(steps[s]);
         await sleep(250);
       }
-      if (st.index < st.total - 1 && !stopFlag) {
+      if (i < st.total - 1 && !stopFlag) {
         await sleep(st.interval);
       }
+      i++;
     }
-    currentRun = null;
-    lsClearRun();
+    // Only clear when finished normally. A navigation sets stopFlag and keeps
+    // the saved state so the next page load resumes.
+    if (!stopFlag) {
+      currentRun = null;
+      lsClearRun();
+    }
     log(stopFlag ? "⏹️ stopped" : "✅ done");
     running = false;
   }
 
-  // If a step navigates the page, mark the current iteration as completed so
-  // the macro resumes at the next one after the reload.
-  window.addEventListener("beforeunload", function () {
-    if (!running || !currentRun) {
-      return;
+  // When a step navigates the page, freeze the loop immediately (so it can't
+  // race ahead and skip an iteration); the resume point is already saved.
+  function freezeForNavigation() {
+    if (running && currentRun) {
+      stopFlag = true;
+      if (currentRun.index < currentRun.total) {
+        lsSaveRun(currentRun);
+      } else {
+        lsClearRun();
+      }
     }
-    const next = Object.assign({}, currentRun);
-    next.index = currentRun.index + 1;
-    next.counterTick = counterTick;
-    if (next.index < next.total) {
-      lsSaveRun(next);
-    } else {
-      lsClearRun();
-    }
-  });
+  }
+  window.addEventListener("beforeunload", freezeForNavigation);
+  window.addEventListener("pagehide", freezeForNavigation);
 
   // --- Panel UI --------------------------------------------------------------
 
@@ -804,11 +813,15 @@
       on = s.macros !== false;
       // Resume a macro that was interrupted by a page navigation.
       const pending = lsLoadRun();
-      if (on && pending && pending.active && pending.index < pending.total) {
-        togglePanel(true);
-        setTimeout(function () {
-          run(pending);
-        }, 900);
+      if (on && pending && pending.active) {
+        if (pending.index < pending.total) {
+          togglePanel(true);
+          setTimeout(function () {
+            run(pending);
+          }, 900);
+        } else {
+          lsClearRun();
+        }
       }
     });
     chrome.storage.onChanged.addListener(function (changes, area) {
