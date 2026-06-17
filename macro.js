@@ -29,11 +29,10 @@
   let running = false;
   let stopFlag = false;
   let lastGrabbed = "";
-  let counterValue = ""; // current value of the {counter} token during a run
+  let counterValue = ""; // value of {counter} for the current iteration
   let counterStart = 0; // counter start number
-  let counterStep = 1; // amount added per advance
+  let counterStep = 1; // amount added per loop
   let counterWidth = 1; // zero-pad width (from the start value's length)
-  let counterTick = 0; // how many times the counter has advanced this run
   let reads = []; // every value captured by Read steps (persisted per-site)
   const STORE_KEY = "mwMacro:" + location.hostname;
   const READS_KEY = "mwMacroReads:" + location.hostname;
@@ -352,18 +351,13 @@
       }
       log("⌨️ filled: " + text);
     } else if (step.action === "counter") {
-      counterValue = padNum(counterStart + counterTick * counterStep, counterWidth);
+      // counterValue is set once per iteration in run() (start + i*step).
       if (el.value !== undefined) {
         el.focus();
         setNativeValue(el, counterValue);
       } else if (el.isContentEditable) {
         el.textContent = counterValue;
         el.dispatchEvent(new Event("input", { bubbles: true }));
-      }
-      counterTick += 1;
-      if (currentRun) {
-        currentRun.counterTick = counterTick;
-        lsSaveRun(currentRun);
       }
       log("🔢 counter → " + counterValue);
     } else if (step.action === "clear") {
@@ -434,12 +428,6 @@
         counterStart: cs,
         counterWidth: startStr.length,
         counterStep: parseInt(panel._counterStep.value, 10) || 1,
-        counterTick: 0,
-        // A dedicated Counter step controls advancement; otherwise the counter
-        // advances automatically once per loop.
-        autoCounter: !steps.some(function (s) {
-          return s.action === "counter";
-        }),
       };
     }
 
@@ -447,7 +435,6 @@
     counterStart = st.counterStart;
     counterWidth = st.counterWidth;
     counterStep = st.counterStep;
-    counterTick = st.counterTick || 0;
 
     log(
       "▶️ run ×" + st.total +
@@ -455,19 +442,20 @@
         (resume ? " (resumed @ " + (st.index + 1) + ")" : "")
     );
 
-    let i = st.index; // next iteration to run (0-based)
+    let i = st.index; // current iteration (0-based)
     while (i < st.total && !stopFlag) {
-      // Persist the resume point BEFORE running the (possibly navigating)
-      // steps: if a step navigates during this iteration, the next page load
-      // resumes exactly at i+1 — no double counting, no skipped iteration.
-      st.index = i + 1;
-      if (st.autoCounter) {
-        // Derived from the iteration index so it stays correct after a reload.
-        counterValue = padNum(counterStart + i * counterStep, counterWidth);
-      }
-      st.counterTick = counterTick;
+      // One counter advance per loop, derived purely from i (no double count).
+      counterValue = padNum(counterStart + i * counterStep, counterWidth);
+      // If a step navigates before the last one, we redo this iteration.
+      st.index = i;
       lsSaveRun(st);
       for (let s = 0; s < steps.length && !stopFlag; s++) {
+        if (s === steps.length - 1) {
+          // The last step often submits/navigates: mark this iteration done so
+          // the reload resumes at i+1 (no skip, no repeat).
+          st.index = i + 1;
+          lsSaveRun(st);
+        }
         await doStep(steps[s]);
         await sleep(250);
       }
