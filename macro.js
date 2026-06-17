@@ -28,6 +28,7 @@
   let logEl = null;
   let running = false;
   let stopFlag = false;
+  let navigating = false; // set when a step starts a page navigation
   let lastGrabbed = "";
   let counterValue = ""; // value of {counter} for the current iteration
   let counterStart = 0; // counter start number
@@ -408,6 +409,7 @@
     }
     running = true;
     stopFlag = false;
+    navigating = false;
 
     let st;
     if (resume && resume.active) {
@@ -443,37 +445,47 @@
     );
 
     let i = st.index; // current iteration (0-based)
-    while (i < st.total && !stopFlag) {
+    while (i < st.total && !stopFlag && !navigating) {
       // One counter advance per loop, derived purely from i (no double count).
       counterValue = padNum(counterStart + i * counterStep, counterWidth);
-      // If any step navigates this iteration, the reload resumes at the next
-      // one. The navigation handler freezes the loop so it can't race ahead.
+      // Persist the resume point: if this iteration navigates, the reload
+      // resumes here (i+1).
       st.index = i + 1;
       lsSaveRun(st);
-      for (let s = 0; s < steps.length && !stopFlag; s++) {
+      for (let s = 0; s < steps.length && !stopFlag && !navigating; s++) {
         await doStep(steps[s]);
         await sleep(250);
       }
-      if (i < st.total - 1 && !stopFlag) {
-        await sleep(st.interval);
+      if (stopFlag || navigating) {
+        break;
+      }
+      // Grace pause: let a navigation that a step just started actually fire
+      // (beforeunload) before we decide to advance — this stops the in-memory
+      // loop from racing ahead and over-counting on navigating macros.
+      await sleep(400);
+      if (stopFlag || navigating) {
+        break;
       }
       i++;
+      if (i < st.total) {
+        await sleep(st.interval);
+      }
     }
-    // Only clear when finished normally. A navigation sets stopFlag and keeps
-    // the saved state so the next page load resumes.
-    if (!stopFlag) {
+    // Keep the saved state if we're pausing for a navigation (so the reload
+    // resumes); only clear when fully finished or stopped.
+    if (!navigating) {
       currentRun = null;
       lsClearRun();
     }
-    log(stopFlag ? "⏹️ stopped" : "✅ done");
+    log(navigating ? "↻ navigating…" : stopFlag ? "⏹️ stopped" : "✅ done");
     running = false;
   }
 
-  // When a step navigates the page, freeze the loop immediately (so it can't
-  // race ahead and skip an iteration); the resume point is already saved.
-  function freezeForNavigation() {
+  // When a step navigates the page, mark it so the in-memory loop stops after
+  // this iteration; the page reload resumes at the saved point (i+1).
+  function onNavigate() {
     if (running && currentRun) {
-      stopFlag = true;
+      navigating = true;
       if (currentRun.index < currentRun.total) {
         lsSaveRun(currentRun);
       } else {
@@ -481,8 +493,8 @@
       }
     }
   }
-  window.addEventListener("beforeunload", freezeForNavigation);
-  window.addEventListener("pagehide", freezeForNavigation);
+  window.addEventListener("beforeunload", onNavigate);
+  window.addEventListener("pagehide", onNavigate);
 
   // --- Panel UI --------------------------------------------------------------
 
