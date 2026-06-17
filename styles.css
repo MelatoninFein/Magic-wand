@@ -1,0 +1,47 @@
+/*
+ * Magic Wand - Shorts blocking styles.
+ *
+ * Every rule is scoped under `html.mw-block-shorts`, a class that content.js
+ * adds/removes based on the "Block Shorts" setting. That lets the popup toggle
+ * Shorts hiding instantly without a page reload.
+ *
+ * Selectors use href-based matching where possible so they work regardless of
+ * the user's UI language.
+ */
+
+/* --- Shorts links in the left sidebar (full + mini) and mobile bar --- */
+html.mw-block-shorts ytd-guide-entry-renderer:has(a[title="Shorts"]),
+html.mw-block-shorts ytd-guide-entry-renderer:has(a[href="/shorts"]),
+html.mw-block-shorts ytd-mini-guide-entry-renderer:has(a[title="Shorts"]),
+html.mw-block-shorts ytd-mini-guide-entry-renderer:has(a[href="/shorts"]),
+html.mw-block-shorts ytm-pivot-bar-item-renderer:has(> div.pivot-shorts) {
+  display: none !important;
+}
+
+/* --- Shorts shelves / sections on home, subscriptions, search --- */
+html.mw-block-shorts ytd-rich-shelf-renderer[is-shorts],
+html.mw-block-shorts ytd-reel-shelf-renderer,
+html.mw-block-shorts ytm-reel-shelf-renderer,
+html.mw-block-shorts ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
+html.mw-block-shorts ytd-rich-section-renderer:has(ytd-reel-shelf-renderer),
+html.mw-block-shorts grid-shelf-view-model:has(ytm-shorts-lockup-view-model),
+html.mw-block-shorts ytd-item-section-renderer:has(ytd-reel-shelf-renderer) {
+  display: none !important;
+}
+
+/* --- Individual Shorts thumbnails / lockups in feeds and search --- */
+html.mw-block-shorts ytm-shorts-lockup-view-model,
+html.mw-block-shorts ytm-shorts-lockup-view-model-v2,
+html.mw-block-shorts ytd-video-renderer:has(a[href^="/shorts/"]),
+html.mw-block-shorts ytd-grid-video-renderer:has(a[href^="/shorts/"]),
+html.mw-block-shorts ytd-rich-item-renderer:has(a[href^="/shorts/"]),
+html.mw-block-shorts ytd-compact-video-renderer:has(a[href^="/shorts/"]) {
+  display: none !important;
+}
+
+/* --- "Shorts" tab/chip on channel pages and filter bars --- */
+html.mw-block-shorts yt-tab-shape[tab-title="Shorts"],
+html.mw-block-shorts tp-yt-paper-tab:has(a[href$="/shorts"]),
+html.mw-block-shorts yt-chip-cloud-chip-renderer:has([title="Shorts"]) {
+  display: none !important;
+}

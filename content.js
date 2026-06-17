@@ -1,65 +1,158 @@
-// YouTube Play Fix
+// Magic Wand - YouTube content script.
 //
-// Refreshes the page once when a YouTube video is started playing.
-// A per-video flag stored in sessionStorage prevents an infinite reload loop,
-// since the video will autoplay (and fire "play" again) after the refresh.
+// Toggleable features (controlled from the popup, stored in chrome.storage):
+//   1. playFix      - refresh the page once when a video starts playing.
+//   2. blockShorts  - hide all Shorts UI (styles.css) and redirect
+//                     /shorts/<id> URLs to the normal /watch?v=<id> player.
+//
+// Site-wide media controls (volume + speed) live in media.js.
 
 (function () {
   "use strict";
 
-  // Returns a stable identifier for the currently loaded video, or null when
-  // we are not on a watch page.
+  const DEFAULTS = { playFix: true, blockShorts: true };
+  let settings = Object.assign({}, DEFAULTS);
+
+  const root = document.documentElement;
+
+  // Optimistically hide Shorts right away (before settings load) so they never
+  // flash on screen. If the user has the feature off, the class is removed as
+  // soon as the stored settings arrive.
+  root.classList.add("mw-block-shorts");
+
+  // ---------------------------------------------------------------------------
+  // Shorts blocking
+  // ---------------------------------------------------------------------------
+
+  function applyShortsClass() {
+    root.classList.toggle("mw-block-shorts", !!settings.blockShorts);
+  }
+
+  // If on a Shorts page, rewrite to the standard watch URL. Returns true if a
+  // redirect was performed.
+  function redirectShorts() {
+    if (!settings.blockShorts) {
+      return false;
+    }
+    const match = window.location.pathname.match(/^\/shorts\/([\w-]+)/);
+    if (!match) {
+      return false;
+    }
+    const watchUrl =
+      window.location.origin + "/watch?v=" + match[1] + window.location.hash;
+    window.location.replace(watchUrl);
+    return true;
+  }
+
+  const SHORTS_SHELF_SELECTORS = [
+    "ytd-rich-shelf-renderer[is-shorts]",
+    "ytd-reel-shelf-renderer",
+    "ytm-reel-shelf-renderer",
+  ];
+
+  // Remove Shorts shelves outright so they don't leave an empty layout gap.
+  function removeShortsShelves() {
+    if (!settings.blockShorts) {
+      return;
+    }
+    SHORTS_SHELF_SELECTORS.forEach(function (sel) {
+      document.querySelectorAll(sel).forEach(function (el) {
+        const wrapper = el.closest("ytd-rich-section-renderer");
+        (wrapper || el).remove();
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Play fix
+  // ---------------------------------------------------------------------------
+
   function getVideoId() {
     try {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("v");
+      return new URLSearchParams(window.location.search).get("v");
     } catch (e) {
       return null;
     }
   }
 
   function storageKey(videoId) {
-    return "ytPlayFix:refreshed:" + videoId;
+    return "magicWand:refreshed:" + videoId;
   }
 
-  // Called whenever a video element starts playing.
   function onPlay() {
+    if (!settings.playFix) {
+      return;
+    }
     const videoId = getVideoId();
     if (!videoId) {
       return;
     }
-
     const key = storageKey(videoId);
     if (sessionStorage.getItem(key)) {
-      // Already refreshed for this video during this tab session.
-      return;
+      return; // Already refreshed for this video this tab session.
     }
-
     // Mark before reloading so the post-refresh autoplay does not loop.
     sessionStorage.setItem(key, "1");
     window.location.reload();
   }
 
-  // Attach the listener to a video element (idempotent per element).
   function attach(video) {
-    if (video.dataset.ytPlayFixBound) {
+    if (video.dataset.magicWandBound) {
       return;
     }
-    video.dataset.ytPlayFixBound = "1";
+    video.dataset.magicWandBound = "1";
     video.addEventListener("play", onPlay);
   }
 
+  // ---------------------------------------------------------------------------
+  // Wiring
+  // ---------------------------------------------------------------------------
+
   function scan() {
     document.querySelectorAll("video").forEach(attach);
+    removeShortsShelves();
   }
 
-  // Video elements are created/replaced dynamically by YouTube's SPA, so watch
-  // the DOM for new ones and bind as they appear.
-  const observer = new MutationObserver(scan);
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  });
+  function init() {
+    redirectShorts();
 
-  scan();
+    // Catch in-page (SPA) navigations to Shorts.
+    ["yt-navigate-start", "yt-navigate-finish"].forEach(function (evt) {
+      window.addEventListener(evt, redirectShorts, true);
+      document.addEventListener(evt, redirectShorts, true);
+    });
+
+    // Elements are created/replaced dynamically, so watch the DOM and re-apply.
+    new MutationObserver(scan).observe(root, {
+      childList: true,
+      subtree: true,
+    });
+
+    scan();
+  }
+
+  // Load settings, then start. Live-update when the popup changes them.
+  if (chrome.storage && chrome.storage.sync) {
+    chrome.storage.sync.get(DEFAULTS, function (stored) {
+      settings = Object.assign({}, DEFAULTS, stored);
+      applyShortsClass();
+      init();
+    });
+
+    chrome.storage.onChanged.addListener(function (changes, area) {
+      if (area !== "sync") {
+        return;
+      }
+      Object.keys(changes).forEach(function (k) {
+        settings[k] = changes[k].newValue;
+      });
+      applyShortsClass();
+      // Apply Shorts removal immediately if it was just turned on.
+      removeShortsShelves();
+    });
+  } else {
+    // Storage unavailable: fall back to defaults.
+    applyShortsClass();
+    init();
+  }
 })();
