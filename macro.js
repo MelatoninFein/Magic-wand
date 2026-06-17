@@ -12,6 +12,8 @@
 //   - Top / Bottom : scroll to the top/bottom of the page
 //   - Wait         : pause N ms
 // Set a repeat count + interval, then Run/Stop. Saved per-site.
+// Every Read value is collected and can be downloaded (JSON/TXT), copied, or
+// cleared from the panel.
 // Open with the popup's "Open macro builder" button.
 
 (function () {
@@ -25,7 +27,9 @@
   let stopFlag = false;
   let lastGrabbed = "";
   let counterValue = ""; // current value of the {counter} token during a run
+  let reads = []; // every value captured by Read steps (persisted per-site)
   const STORE_KEY = "mwMacro:" + location.hostname;
+  const READS_KEY = "mwMacroReads:" + location.hostname;
 
   // --- Element selector ------------------------------------------------------
 
@@ -170,6 +174,82 @@
     }
   }
 
+  // --- Collected read values (download / copy / clear) ----------------------
+
+  function persistReads() {
+    chrome.storage.local.set({ [READS_KEY]: reads });
+  }
+
+  function updateReadsLabel() {
+    if (panel && panel._readsLbl) {
+      panel._readsLbl.textContent = "📥 Reads collected: " + reads.length;
+    }
+  }
+
+  function downloadBlob(name, text, mime) {
+    const blob = new Blob([text], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+      a.remove();
+    }, 1000);
+  }
+
+  function downloadReadsJSON() {
+    downloadBlob(
+      "macro-reads.json",
+      JSON.stringify(reads, null, 2),
+      "application/json"
+    );
+    log("⬇️ downloaded " + reads.length + " reads (JSON)");
+  }
+
+  function downloadReadsTXT() {
+    downloadBlob("macro-reads.txt", reads.join("\n"), "text/plain");
+    log("⬇️ downloaded " + reads.length + " reads (TXT)");
+  }
+
+  function copyReads() {
+    const text = reads.join("\n");
+    const done = function () {
+      log("📋 copied " + reads.length + " reads");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () {
+        fallbackCopy(text, done);
+      });
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, done) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.cssText = "position:fixed;opacity:0;";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      done();
+    } catch (e) {
+      log("copy failed");
+    }
+    ta.remove();
+  }
+
+  function clearReads() {
+    reads = [];
+    persistReads();
+    updateReadsLabel();
+    log("🗑️ reads cleared");
+  }
+
   async function doStep(step) {
     // Steps that don't need a picked element.
     if (step.action === "wait") {
@@ -195,6 +275,9 @@
     }
     if (step.action === "read") {
       lastGrabbed = el.value !== undefined ? el.value : el.textContent.trim();
+      reads.push(lastGrabbed);
+      persistReads();
+      updateReadsLabel();
       log("📋 read: " + lastGrabbed);
     } else if (step.action === "fill") {
       let text = (step.value || "").split("{grabbed}").join(lastGrabbed);
@@ -488,6 +571,20 @@
       "background:rgba(255,253,248,0.5);color:#16140f;font:11px monospace;padding:6px;resize:vertical;";
     panel.appendChild(logEl);
 
+    // Collected reads bar
+    const readsBar = document.createElement("div");
+    readsBar.style.cssText =
+      "display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;";
+    const readsLbl = document.createElement("span");
+    readsLbl.style.cssText = "flex-basis:100%;font-size:12px;font-weight:700;";
+    readsBar.appendChild(readsLbl);
+    readsBar.appendChild(mkBtn("⬇ JSON", "", downloadReadsJSON));
+    readsBar.appendChild(mkBtn("⬇ TXT", "", downloadReadsTXT));
+    readsBar.appendChild(mkBtn("Copy", "", copyReads));
+    readsBar.appendChild(mkBtn("Clear", "", clearReads));
+    panel._readsLbl = readsLbl;
+    panel.appendChild(readsBar);
+
     document.body.appendChild(panel);
     load();
   }
@@ -506,7 +603,7 @@
   }
 
   function load() {
-    chrome.storage.local.get([STORE_KEY], function (d) {
+    chrome.storage.local.get([STORE_KEY, READS_KEY], function (d) {
       const data = d[STORE_KEY];
       if (data && data.steps) {
         steps = data.steps;
@@ -516,6 +613,8 @@
         if (data.counterStep) panel._counterStep.value = data.counterStep;
         renderSteps();
       }
+      reads = d[READS_KEY] || [];
+      updateReadsLabel();
     });
   }
 
