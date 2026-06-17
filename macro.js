@@ -446,16 +446,11 @@
     while (i < st.total && !stopFlag) {
       // One counter advance per loop, derived purely from i (no double count).
       counterValue = padNum(counterStart + i * counterStep, counterWidth);
-      // If a step navigates before the last one, we redo this iteration.
-      st.index = i;
+      // If any step navigates this iteration, the reload resumes at the next
+      // one. The navigation handler freezes the loop so it can't race ahead.
+      st.index = i + 1;
       lsSaveRun(st);
       for (let s = 0; s < steps.length && !stopFlag; s++) {
-        if (s === steps.length - 1) {
-          // The last step often submits/navigates: mark this iteration done so
-          // the reload resumes at i+1 (no skip, no repeat).
-          st.index = i + 1;
-          lsSaveRun(st);
-        }
         await doStep(steps[s]);
         await sleep(250);
       }
