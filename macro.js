@@ -2,8 +2,9 @@
 //
 // Build a small automation: pick fields/buttons on the page and add steps:
 //   - Read field   : grab a field's text (stored as {grabbed})
+//   - Counter      : advance the {counter} value by the step (own step)
 //   - Fill field   : type text into a field. Tokens: {grabbed} = last read
-//                    value, {counter} = auto-increment number (start + step)
+//                    value, {counter} = current counter value
 //   - Clear        : empty a field completely
 //   - Click        : click an element
 //   - Hover        : hover an element
@@ -28,6 +29,9 @@
   let stopFlag = false;
   let lastGrabbed = "";
   let counterValue = ""; // current value of the {counter} token during a run
+  let counterNum = 0; // running counter number
+  let counterWidth = 1; // zero-pad width (from the start value's length)
+  let counterStepVal = 1; // amount added when the counter advances
   let reads = []; // every value captured by Read steps (persisted per-site)
   const STORE_KEY = "mwMacro:" + location.hostname;
   const READS_KEY = "mwMacroReads:" + location.hostname;
@@ -268,6 +272,12 @@
       log("🖱️ scroll " + (step.action === "scrolltop" ? "to top" : "to bottom"));
       return;
     }
+    if (step.action === "counter") {
+      counterValue = padNum(counterNum, counterWidth);
+      counterNum += counterStepVal;
+      log("🔢 counter: " + counterValue);
+      return;
+    }
 
     const el = query(step.selector);
     if (!el) {
@@ -343,21 +353,32 @@
 
     // {counter} setup: zero-pad to the width of the start value.
     const startStr = (panel._counterStart.value || "0").trim();
-    const width = startStr.length;
-    let counterNum = parseInt(startStr, 10);
+    counterWidth = startStr.length;
+    counterNum = parseInt(startStr, 10);
     if (isNaN(counterNum)) {
       counterNum = 0;
     }
-    const counterStep = parseInt(panel._counterStep.value, 10) || 1;
+    counterStepVal = parseInt(panel._counterStep.value, 10) || 1;
+    counterValue = padNum(counterNum, counterWidth);
+
+    // If the macro has a dedicated Counter step it controls advancement;
+    // otherwise the counter advances automatically once per loop.
+    const autoCounter = !steps.some(function (s) {
+      return s.action === "counter";
+    });
 
     log("▶️ run ×" + count);
     for (let i = 0; i < count && !stopFlag; i++) {
-      counterValue = padNum(counterNum, width);
+      if (autoCounter) {
+        counterValue = padNum(counterNum, counterWidth);
+      }
       for (let s = 0; s < steps.length && !stopFlag; s++) {
         await doStep(steps[s]);
         await sleep(250);
       }
-      counterNum += counterStep;
+      if (autoCounter) {
+        counterNum += counterStepVal;
+      }
       if (i < count - 1 && !stopFlag) {
         await sleep(interval);
       }
@@ -433,7 +454,7 @@
       }
       return;
     }
-    if (action === "scrolltop" || action === "scrollbottom") {
+    if (action === "scrolltop" || action === "scrollbottom" || action === "counter") {
       steps.push({ action: action });
       renderSteps();
       return;
@@ -495,6 +516,7 @@
     const add = document.createElement("div");
     add.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;";
     add.appendChild(mkBtn("+ Read", "", function () { addStep("read"); }));
+    add.appendChild(mkBtn("+ Counter", "", function () { addStep("counter"); }));
     add.appendChild(mkBtn("+ Fill", "", function () { addStep("fill"); }));
     add.appendChild(mkBtn("+ Clear", "", function () { addStep("clear"); }));
     add.appendChild(mkBtn("+ Click", "", function () { addStep("click"); }));
