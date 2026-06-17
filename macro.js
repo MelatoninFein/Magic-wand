@@ -36,6 +36,32 @@
   let reads = []; // every value captured by Read steps (persisted per-site)
   const STORE_KEY = "mwMacro:" + location.hostname;
   const READS_KEY = "mwMacroReads:" + location.hostname;
+  // Run state is kept in localStorage (synchronous) so it survives a page
+  // navigation triggered by a step, letting the macro resume after reload.
+  const LS_RUN = "mwMacroRun:" + location.hostname;
+  let currentRun = null;
+
+  function lsSaveRun(obj) {
+    try {
+      localStorage.setItem(LS_RUN, JSON.stringify(obj));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  function lsLoadRun() {
+    try {
+      return JSON.parse(localStorage.getItem(LS_RUN) || "null");
+    } catch (e) {
+      return null;
+    }
+  }
+  function lsClearRun() {
+    try {
+      localStorage.removeItem(LS_RUN);
+    } catch (e) {
+      /* ignore */
+    }
+  }
 
   // --- Element selector ------------------------------------------------------
 
@@ -348,50 +374,86 @@
     }
   }
 
-  async function run() {
+  async function run(resume) {
     if (running) {
       return;
     }
     running = true;
     stopFlag = false;
-    const count = Math.max(1, parseInt(panel._count.value, 10) || 1);
-    const interval = Math.max(0, parseFloat(panel._interval.value) || 0) * 1000;
 
-    // {counter} setup: zero-pad to the width of the start value.
-    const startStr = (panel._counterStart.value || "0").trim();
-    counterWidth = startStr.length;
-    counterNum = parseInt(startStr, 10);
-    if (isNaN(counterNum)) {
-      counterNum = 0;
+    let st;
+    if (resume && resume.active) {
+      st = resume;
+      steps = st.steps || steps;
+    } else {
+      const startStr = (panel._counterStart.value || "0").trim();
+      let cn = parseInt(startStr, 10);
+      if (isNaN(cn)) {
+        cn = 0;
+      }
+      st = {
+        active: true,
+        steps: steps,
+        index: 0,
+        total: Math.max(1, parseInt(panel._count.value, 10) || 1),
+        interval: Math.max(0, parseFloat(panel._interval.value) || 0) * 1000,
+        counterNum: cn,
+        counterWidth: startStr.length,
+        counterStepVal: parseInt(panel._counterStep.value, 10) || 1,
+        // A dedicated Counter step controls advancement; otherwise the counter
+        // advances automatically once per loop.
+        autoCounter: !steps.some(function (s) {
+          return s.action === "counter";
+        }),
+      };
     }
-    counterStepVal = parseInt(panel._counterStep.value, 10) || 1;
-    counterValue = padNum(counterNum, counterWidth);
 
-    // If the macro has a dedicated Counter step it controls advancement;
-    // otherwise the counter advances automatically once per loop.
-    const autoCounter = !steps.some(function (s) {
-      return s.action === "counter";
-    });
+    currentRun = st;
+    counterNum = st.counterNum;
+    counterWidth = st.counterWidth;
+    counterStepVal = st.counterStepVal;
 
-    log("▶️ run ×" + count);
-    for (let i = 0; i < count && !stopFlag; i++) {
-      if (autoCounter) {
+    log("▶️ run ×" + st.total + (resume ? " (resumed @ " + (st.index + 1) + ")" : ""));
+
+    for (; st.index < st.total && !stopFlag; st.index++) {
+      if (st.autoCounter) {
         counterValue = padNum(counterNum, counterWidth);
       }
+      st.counterNum = counterNum;
+      lsSaveRun(st); // persist progress before the (possibly navigating) steps
       for (let s = 0; s < steps.length && !stopFlag; s++) {
         await doStep(steps[s]);
         await sleep(250);
       }
-      if (autoCounter) {
+      if (st.autoCounter) {
         counterNum += counterStepVal;
       }
-      if (i < count - 1 && !stopFlag) {
-        await sleep(interval);
+      st.counterNum = counterNum;
+      if (st.index < st.total - 1 && !stopFlag) {
+        await sleep(st.interval);
       }
     }
+    currentRun = null;
+    lsClearRun();
     log(stopFlag ? "⏹️ stopped" : "✅ done");
     running = false;
   }
+
+  // If a step navigates the page, mark the current iteration as completed so
+  // the macro resumes at the next one after the reload.
+  window.addEventListener("beforeunload", function () {
+    if (!running || !currentRun) {
+      return;
+    }
+    const next = Object.assign({}, currentRun);
+    next.index = currentRun.index + 1;
+    next.counterNum = counterNum + (currentRun.autoCounter ? counterStepVal : 0);
+    if (next.index < next.total) {
+      lsSaveRun(next);
+    } else {
+      lsClearRun();
+    }
+  });
 
   // --- Panel UI --------------------------------------------------------------
 
@@ -594,8 +656,8 @@
 
     const ctrl = document.createElement("div");
     ctrl.style.cssText = "display:flex;gap:6px;margin-top:8px;";
-    ctrl.appendChild(mkBtn("▶ Run", "#2a7a55", run));
-    ctrl.appendChild(mkBtn("⏹ Stop", "#a33", function () { stopFlag = true; }));
+    ctrl.appendChild(mkBtn("▶ Run", "", function () { run(); }));
+    ctrl.appendChild(mkBtn("⏹ Stop", "", function () { stopFlag = true; lsClearRun(); }));
     ctrl.appendChild(mkBtn("Save", "#3a3160", save));
     ctrl.appendChild(mkBtn("Clear", "#3a3160", function () {
       steps = [];
@@ -704,6 +766,14 @@
   if (chrome.storage && chrome.storage.sync) {
     chrome.storage.sync.get({ macros: true }, function (s) {
       on = s.macros !== false;
+      // Resume a macro that was interrupted by a page navigation.
+      const pending = lsLoadRun();
+      if (on && pending && pending.active && pending.index < pending.total) {
+        togglePanel(true);
+        setTimeout(function () {
+          run(pending);
+        }, 900);
+      }
     });
     chrome.storage.onChanged.addListener(function (changes, area) {
       if (area === "sync" && changes.macros) {
