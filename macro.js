@@ -2,7 +2,8 @@
 //
 // Build a small automation: pick fields/buttons on the page and add steps:
 //   - Read field   : grab a field's text (stored as {grabbed})
-//   - Counter      : advance the {counter} value by the step (own step)
+//   - Counter      : type the auto-incrementing number into a picked field,
+//                    then advance it by the step (00001, 00002, ...)
 //   - Fill field   : type text into a field. Tokens: {grabbed} = last read
 //                    value, {counter} = current counter value
 //   - Clear        : empty a field completely
@@ -272,12 +273,6 @@
       log("🖱️ scroll " + (step.action === "scrolltop" ? "to top" : "to bottom"));
       return;
     }
-    if (step.action === "counter") {
-      counterValue = padNum(counterNum, counterWidth);
-      counterNum += counterStepVal;
-      log("🔢 counter: " + counterValue);
-      return;
-    }
 
     const el = query(step.selector);
     if (!el) {
@@ -300,6 +295,17 @@
         el.textContent = text;
       }
       log("⌨️ filled: " + text);
+    } else if (step.action === "counter") {
+      counterValue = padNum(counterNum, counterWidth);
+      if (el.value !== undefined) {
+        el.focus();
+        setNativeValue(el, counterValue);
+      } else if (el.isContentEditable) {
+        el.textContent = counterValue;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      counterNum += counterStepVal;
+      log("🔢 counter → " + counterValue);
     } else if (step.action === "clear") {
       if (el.value !== undefined) {
         el.focus();
@@ -454,7 +460,7 @@
       }
       return;
     }
-    if (action === "scrolltop" || action === "scrollbottom" || action === "counter") {
+    if (action === "scrolltop" || action === "scrollbottom") {
       steps.push({ action: action });
       renderSteps();
       return;
