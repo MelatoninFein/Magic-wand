@@ -4,6 +4,7 @@
 //   - Read field   : grab a field's text (stored as {grabbed})
 //   - Fill field   : type text into a field. Tokens: {grabbed} = last read
 //                    value, {counter} = auto-increment number (start + step)
+//   - Clear        : empty a field completely
 //   - Click        : click an element
 //   - Hover        : hover an element
 //   - Key          : press a key (e.g. Enter) on an element
@@ -289,6 +290,15 @@
         el.textContent = text;
       }
       log("⌨️ filled: " + text);
+    } else if (step.action === "clear") {
+      if (el.value !== undefined) {
+        el.focus();
+        setNativeValue(el, "");
+      } else if (el.isContentEditable) {
+        el.textContent = "";
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      log("🧹 cleared");
     } else if (step.action === "click") {
       el.click();
       log("🖱️ clicked");
@@ -486,6 +496,7 @@
     add.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;";
     add.appendChild(mkBtn("+ Read", "", function () { addStep("read"); }));
     add.appendChild(mkBtn("+ Fill", "", function () { addStep("fill"); }));
+    add.appendChild(mkBtn("+ Clear", "", function () { addStep("clear"); }));
     add.appendChild(mkBtn("+ Click", "", function () { addStep("click"); }));
     add.appendChild(mkBtn("+ Hover", "", function () { addStep("hover"); }));
     add.appendChild(mkBtn("+ Key", "", function () { addStep("key"); }));
