@@ -44,6 +44,7 @@
 
   function lsSaveRun(obj) {
     try {
+      obj.ts = Date.now(); // so stale runs don't auto-resume forever
       localStorage.setItem(LS_RUN, JSON.stringify(obj));
     } catch (e) {
       /* ignore */
@@ -448,7 +449,11 @@
     counterStep = st.counterStep;
     counterTick = st.counterTick || 0;
 
-    log("▶️ run ×" + st.total + (resume ? " (resumed @ " + (st.index + 1) + ")" : ""));
+    log(
+      "▶️ run ×" + st.total +
+        " | counter " + padNum(counterStart, counterWidth) + " +" + counterStep +
+        (resume ? " (resumed @ " + (st.index + 1) + ")" : "")
+    );
 
     let i = st.index; // next iteration to run (0-based)
     while (i < st.total && !stopFlag) {
@@ -702,6 +707,8 @@
     ctrl.appendChild(mkBtn("Save", "#3a3160", save));
     ctrl.appendChild(mkBtn("Clear", "#3a3160", function () {
       steps = [];
+      stopFlag = true;
+      lsClearRun();
       renderSteps();
     }));
     panel.appendChild(ctrl);
@@ -811,17 +818,17 @@
   if (chrome.storage && chrome.storage.sync) {
     chrome.storage.sync.get({ macros: true }, function (s) {
       on = s.macros !== false;
-      // Resume a macro that was interrupted by a page navigation.
+      // Resume a macro that was interrupted by a page navigation — but only if
+      // it's recent (within 2 min), so a stale run can't auto-run on load.
       const pending = lsLoadRun();
-      if (on && pending && pending.active) {
-        if (pending.index < pending.total) {
-          togglePanel(true);
-          setTimeout(function () {
-            run(pending);
-          }, 900);
-        } else {
-          lsClearRun();
-        }
+      const fresh = pending && pending.ts && Date.now() - pending.ts < 120000;
+      if (on && pending && pending.active && fresh && pending.index < pending.total) {
+        togglePanel(true);
+        setTimeout(function () {
+          run(pending);
+        }, 900);
+      } else if (pending) {
+        lsClearRun();
       }
     });
     chrome.storage.onChanged.addListener(function (changes, area) {
