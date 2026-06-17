@@ -30,9 +30,10 @@
   let stopFlag = false;
   let lastGrabbed = "";
   let counterValue = ""; // current value of the {counter} token during a run
-  let counterNum = 0; // running counter number
+  let counterStart = 0; // counter start number
+  let counterStep = 1; // amount added per advance
   let counterWidth = 1; // zero-pad width (from the start value's length)
-  let counterStepVal = 1; // amount added when the counter advances
+  let counterTick = 0; // how many times the counter has advanced this run
   let reads = []; // every value captured by Read steps (persisted per-site)
   const STORE_KEY = "mwMacro:" + location.hostname;
   const READS_KEY = "mwMacroReads:" + location.hostname;
@@ -58,6 +59,34 @@
   function lsClearRun() {
     try {
       localStorage.removeItem(LS_RUN);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  // Remember where the user dragged the panel (per site).
+  const LS_POS = "mwMacroPos:" + location.hostname;
+  function savePos() {
+    if (!panel) {
+      return;
+    }
+    try {
+      localStorage.setItem(
+        LS_POS,
+        JSON.stringify({ left: panel.style.left, top: panel.style.top })
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  function applyPos() {
+    try {
+      const p = JSON.parse(localStorage.getItem(LS_POS) || "null");
+      if (p && p.left) {
+        panel.style.left = p.left;
+        panel.style.top = p.top;
+        panel.style.right = "auto";
+      }
     } catch (e) {
       /* ignore */
     }
@@ -322,7 +351,7 @@
       }
       log("⌨️ filled: " + text);
     } else if (step.action === "counter") {
-      counterValue = padNum(counterNum, counterWidth);
+      counterValue = padNum(counterStart + counterTick * counterStep, counterWidth);
       if (el.value !== undefined) {
         el.focus();
         setNativeValue(el, counterValue);
@@ -330,7 +359,11 @@
         el.textContent = counterValue;
         el.dispatchEvent(new Event("input", { bubbles: true }));
       }
-      counterNum += counterStepVal;
+      counterTick += 1;
+      if (currentRun) {
+        currentRun.counterTick = counterTick;
+        lsSaveRun(currentRun);
+      }
       log("🔢 counter → " + counterValue);
     } else if (step.action === "clear") {
       if (el.value !== undefined) {
@@ -387,9 +420,9 @@
       steps = st.steps || steps;
     } else {
       const startStr = (panel._counterStart.value || "0").trim();
-      let cn = parseInt(startStr, 10);
-      if (isNaN(cn)) {
-        cn = 0;
+      let cs = parseInt(startStr, 10);
+      if (isNaN(cs)) {
+        cs = 0;
       }
       st = {
         active: true,
@@ -397,9 +430,10 @@
         index: 0,
         total: Math.max(1, parseInt(panel._count.value, 10) || 1),
         interval: Math.max(0, parseFloat(panel._interval.value) || 0) * 1000,
-        counterNum: cn,
+        counterStart: cs,
         counterWidth: startStr.length,
-        counterStepVal: parseInt(panel._counterStep.value, 10) || 1,
+        counterStep: parseInt(panel._counterStep.value, 10) || 1,
+        counterTick: 0,
         // A dedicated Counter step controls advancement; otherwise the counter
         // advances automatically once per loop.
         autoCounter: !steps.some(function (s) {
@@ -409,26 +443,24 @@
     }
 
     currentRun = st;
-    counterNum = st.counterNum;
+    counterStart = st.counterStart;
     counterWidth = st.counterWidth;
-    counterStepVal = st.counterStepVal;
+    counterStep = st.counterStep;
+    counterTick = st.counterTick || 0;
 
     log("▶️ run ×" + st.total + (resume ? " (resumed @ " + (st.index + 1) + ")" : ""));
 
     for (; st.index < st.total && !stopFlag; st.index++) {
       if (st.autoCounter) {
-        counterValue = padNum(counterNum, counterWidth);
+        // Derived from the iteration index so it stays correct after a reload.
+        counterValue = padNum(counterStart + st.index * counterStep, counterWidth);
       }
-      st.counterNum = counterNum;
+      st.counterTick = counterTick;
       lsSaveRun(st); // persist progress before the (possibly navigating) steps
       for (let s = 0; s < steps.length && !stopFlag; s++) {
         await doStep(steps[s]);
         await sleep(250);
       }
-      if (st.autoCounter) {
-        counterNum += counterStepVal;
-      }
-      st.counterNum = counterNum;
       if (st.index < st.total - 1 && !stopFlag) {
         await sleep(st.interval);
       }
@@ -447,7 +479,7 @@
     }
     const next = Object.assign({}, currentRun);
     next.index = currentRun.index + 1;
-    next.counterNum = counterNum + (currentRun.autoCounter ? counterStepVal : 0);
+    next.counterTick = counterTick;
     if (next.index < next.total) {
       lsSaveRun(next);
     } else {
@@ -687,6 +719,7 @@
     panel.appendChild(readsBar);
 
     document.body.appendChild(panel);
+    applyPos();
     load();
   }
 
@@ -736,7 +769,10 @@
       el.style.top = oy + (e.clientY - sy) + "px";
     });
     document.addEventListener("mouseup", function () {
-      dragging = false;
+      if (dragging) {
+        dragging = false;
+        savePos();
+      }
     });
   }
 
